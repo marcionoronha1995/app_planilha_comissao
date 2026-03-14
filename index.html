@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Planilha Comissão - Gestão Segura</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .hero { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); color: white; padding: 60px 0; }
+        .card { border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-5px); }
+        .code-block { background: #212529; color: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; }
+        .badge-security { background-color: #198754; }
+    </style>
+</head>
+<body>
+
+    <header class="hero text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold">📊 App Planilha Comissão</h1>
+            <p class="lead">Gestão inteligente e segura de comissões com criptografia RSA.</p>
+            <span class="badge badge-security p-2 mt-2">🛡️ Verificado & Protegido</span>
+        </div>
+    </header>
+
+    <main class="container my-5">
+        
+        <section class="row mb-5">
+            <div class="col-md-8 offset-md-2 text-center">
+                <h2>Sobre o Projeto</h2>
+                <p class="text-muted">
+                    Este sistema recebe valores de vendas, calcula automaticamente a comissão devida e gera planilhas processadas. 
+                    Desenvolvido em Balneário Camboriú, focado em segurança e integridade de dados.
+                </p>
+            </div>
+        </section>
+
+        <section class="mb-5">
+            <h3 class="mb-4">🛠️ Componentes do Sistema</h3>
+            <div class="table-responsive">
+                <table class="table table-hover bg-white rounded shadow-sm">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Arquivo</th>
+                            <th>Função Principal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><code>app_planilha_write_key_.py</code></td><td>Gerador de Identidade e Par de Chaves.</td></tr>
+                        <tr><td><code>app_planilha_sign_data_.py</code></td><td>Carimbo Digital (Assinatura dos dados).</td></tr>
+                        <tr><td><code>app_planilha_desbloquear.py</code></td><td>Validador de Autenticidade e Integridade.</td></tr>
+                        <tr><td><code>dados_planilha.csv</code></td><td>Banco de Dados (Vendas, CNPJ e Clientes).</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="mb-5">
+            <h3 class="mb-4">🚀 Fluxo de Trabalho (Commit)</h3>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card h-100 p-3">
+                        <h5 class="fw-bold text-primary">1. Atualizar</h5>
+                        <p>Insira novos dados no CSV e salve as alterações.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 p-3">
+                        <h5 class="fw-bold text-primary">2. Assinar</h5>
+                        <p>Rode o script de assinatura para travar os novos dados.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card h-100 p-3">
+                        <h5 class="fw-bold text-primary">3. Validar</h5>
+                        <p>Execute o verificador para garantir sucesso antes do Push.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-light p-4 rounded border">
+            <h3 class="text-danger">🔐 Segurança Crítica</h3>
+            <p>A <strong>Chave Privada</strong> está protegida fora deste repositório para evitar vazamentos acidentais. O sistema utiliza o padrão RSA-PSS para máxima proteção.</p>
+            <div class="code-block mt-3">
+                # Chave Privada: Mantida em ambiente local seguro<br>
+                # Chave Pública: Disponível para validação de terceiros
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-4 text-muted border-top">
+        <p>Desenvolvido por Marcio Noronha &copy; 2026</p>
+    </footer>
+
+</body>
+</html>
