@@ -40,11 +40,27 @@ Toda vez que você for atualizar o sistema ou os dados e enviar para o GitHub, s
     git push origin main
     ```
 
+### 🔄 Atualização no PythonAnywhere
+
+Para aplicar as mudanças no servidor após o envio ao GitHub:
+
+1.  Abra o **Console Bash** no painel do PythonAnywhere.
+2.  Execute o comando para atualizar os arquivos:
+    ```bash
+    git pull origin main
+    ```
+3.  Vá até a aba **Web** e clique no botão verde **Reload** para reiniciar a aplicação com as novas alterações.
+
 ---
 
 ## 🔐 Segurança das Chaves
 * **Chave Privada**: Fica em `../app_planilha_key_priv` (fora do GitHub).
 * **Chave Pública**: Fica no repositório para permitir a conferência dos dados por qualquer interessado.
+
+---
+
+## ☁️ Hospedagem
+O projeto utilizará o **PythonAnywhere** para rodar os arquivos Python do servidor da aplicação.
 
 ---
 
