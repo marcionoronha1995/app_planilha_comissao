@@ -105,3 +105,68 @@ body {
     70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
 }
+
+/* 8. Layout Sidebar Profissional */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: var(--azul-bc);
+    color: #fff;
+    transition: all 0.3s;
+    min-height: 100vh;
+}
+
+#sidebar.active {
+    min-width: 80px;
+    max-width: 80px;
+}
+
+#sidebar .sidebar-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+#sidebar ul.components {
+    padding: 20px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#sidebar ul li a {
+    padding: 15px 10px;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: 0.3s;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#sidebar ul li a:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+#sidebar ul li a i {
+    min-width: 60px;
+    text-align: center;
+    font-size: 1.2em;
+}
+
+#sidebar.active ul li a span,
+#sidebar.active .sidebar-header h3 {
+    display: none;
+}
+
+#content {
+    width: 100%;
+    min-height: 100vh;
+    transition: all 0.3s;
+}
