@@ -11,3 +11,7 @@ def index():
 if __name__ == '__main__':
     # Roda o servidor localmente para teste
     app.run(debug=True)
+
+@app.route('/')
+def index(): # <-- O url_for procura este nome aqui
+    return render_template('index.html')    
