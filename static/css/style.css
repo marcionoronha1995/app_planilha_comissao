@@ -1,0 +1,107 @@
+/* 1. Variáveis Globais (Facilita mudar as cores depois) */
+:root {
+    --azul-bc: #0a58ca;      /* Um azul oceano inspirado em Balneário Camboriú */
+    --verde-sucesso: #198754;
+    --cinza-fundo: #f4f7f6;
+    --sombra-suave: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* 2. Ajustes de Layout Geral */
+body {
+    background-color: var(--cinza-fundo);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+/* 3. Estilização do Hero (Cabeçalho) */
+.hero-section {
+    padding: 80px 0;
+    background: linear-gradient(145deg, var(--azul-bc), #003366);
+    color: white;
+    border-bottom: 5px solid #ffc107; /* Detalhe em dourado/amarelo */
+}
+
+/* 4. Estilo dos Cards de Calculadora */
+.calc-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: var(--sombra-suave);
+    border: 1px solid #e0e0e0;
+    margin-top: -50px; /* Faz o card "subir" sobre o hero */
+}
+
+/* 5. Customização de Botões (além do Bootstrap) */
+.btn-processar {
+    background-color: var(--verde-sucesso);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-processar:hover {
+    background-color: #146c43;
+    transform: scale(1.02); /* Aumenta levemente ao passar o mouse */
+    box-shadow: 0 6px 20px rgba(25, 135, 84, 0.3);
+}
+
+/* 6. Tabela de Resultados */
+.table-custom {
+    border-collapse: separate;
+    border-spacing: 0 10px; /* Dá um espaço entre as linhas da tabela */
+}
+
+.table-custom thead th {
+    background-color: var(--azul-bc);
+    color: white;
+    border: none;
+    padding: 15px;
+}
+
+.table-custom tbody tr {
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* 7. Alerta de Construção (Animação) */
+@keyframes pulsar {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.alert-construcao {
+    animation: pulsar 2s infinite;
+    border-left: 5px solid #ffc107;
+}
+
+/* Estilo Personalizado do Rodapé */
+.footer-custom {
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    color: #495057;
+}
+
+.footer-custom h5 {
+    color: var(--azul-bc); /* Usando a variável que criamos antes */
+}
+
+/* O "pingo" de localização (verde para indicar 'ativo/online') */
+.location-dot {
+    height: 10px;
+    width: 10px;
+    background-color: #28a745;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
