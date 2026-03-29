@@ -16,7 +16,10 @@ if __name__ == '__main__':
 MENU_SISTEMA = [
     {"nome": "Home", "url": "/", "icone": "🏠"},
     {"nome": "Comissões", "url": "/comissao", "icone": "📊"},
-    {"nome": "Contato", "url": "/contato", "icone": "✉️"}
+    {"nome": "Contato", "url": "/contato", "icone": "✉️"},
+    {"nome": "Relatórios", "url": "/relatorios", "icone": "📈"}
+    
+    
 ]
 
 def home():
@@ -29,3 +32,8 @@ def contato():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# Rota para o novo programa de Relatórios
+@app.route('/relatorios')
+def relatorios():
+    return render_template('relatorios.html')
