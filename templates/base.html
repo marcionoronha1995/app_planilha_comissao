@@ -8,6 +8,14 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+    /* ... seus outros estilos ... */
+    
+    .texto-versao {
+        font-size: 0.75rem;
+        color: #6c757d; /* Cor secundária (cinza) */
+    }
+</style>
 </head>
 
 <body class="d-flex flex-column min-vh-100">
@@ -74,6 +82,12 @@
                     <p class="small text-muted mb-0">
                         &copy; 2026 App Planilha Comissão. Todos os direitos reservados.
                     </p>
+                   <div class="mt-1">
+        <small class="texto-versao">
+            Versão do Sistema: <strong>v{{ versao if versao else '1.0.0' }}</strong>
+        </small>
+    </div>
+                    
                 </div>
             </div>
         </div>

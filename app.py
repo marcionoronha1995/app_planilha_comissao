@@ -2,6 +2,16 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
+# No topo do seu app.py, junto com as configurações
+VERSAO_APP = "1.1.0"  # Altere aqui sempre que atualizar o código
+
+@app.route('/')
+def home():
+    # Passamos a versão para o HTML
+    return render_template('index.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
+
+# Repita o 'versao=VERSAO_APP' nas outras rotas se quiser que apareça em todas as páginas
+
 # ==========================================
 # 1. CONFIGURAÇÕES GERAIS
 # ==========================================
