@@ -2,26 +2,16 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# No topo do seu app.py, junto com as configurações
-VERSAO_APP = "1.1.0"  # Altere aqui sempre que atualizar o código
-
-@app.route('/')
-def home():
-    # Passamos a versão para o HTML
-    return render_template('index.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
-
-# Repita o 'versao=VERSAO_APP' nas outras rotas se quiser que apareça em todas as páginas
-
 # ==========================================
 # 1. CONFIGURAÇÕES GERAIS
 # ==========================================
-# A sua lista de configuração do menu (no topo, para todas as rotas enxergarem)
+VERSAO_APP = "1.1.0" 
+
 MENU_SISTEMA = [
     {"nome": "Home", "url": "/", "icone": "🏠"},
     {
         "nome": "Dados", 
         "icone": "📂", 
-        # Aqui está a mágica: Uma lista de sub-itens dentro do item principal!
         "sub_itens": [
             {"nome": "Ler Dados", "url": "/ler_dados", "icone": "📥"},
             {"nome": "Processar Comissões", "url": "/comissao", "icone": "⚙️"}
@@ -33,38 +23,32 @@ MENU_SISTEMA = [
 ]
 
 # ==========================================
-# 2. ROTAS (Os "programas" do sistema)
+# 2. ROTAS
 # ==========================================
 
-# Rota Principal (Home)
 @app.route('/')
 def home():
-    # Passamos o menu=MENU_SISTEMA para o base.html desenhar a barra lateral
-    return render_template('index.html', menu=MENU_SISTEMA)
+    # Removi a duplicata e centralizei aqui
+    return render_template('index.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
-# A nova rota para "Ler Dados"
 @app.route('/ler_dados')
 def ler_dados():
-    return render_template('ler_dados.html', menu=MENU_SISTEMA)
+    return render_template('ler_dados.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
-# Rota de Comissões (Deixando preparada, já que está na lista do menu!)
-@app.route('/comissao')
+@app.route('/comissao', methods=['GET', 'POST'])
 def comissao():
-    return render_template('comissao.html', menu=MENU_SISTEMA)
+    return render_template('comissao.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
-# Rota de Contato
 @app.route('/contato')
 def contato():
-    return render_template('contato.html', menu=MENU_SISTEMA)
+    return render_template('contato.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
-# Rota de Relatórios
 @app.route('/relatorios')
 def relatorios():
-    return render_template('relatorios.html', menu=MENU_SISTEMA)
+    return render_template('relatorios.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
 # ==========================================
-# 3. INICIAR O SERVIDOR (Sempre no final!)
+# 3. INICIAR O SERVIDOR
 # ==========================================
 if __name__ == '__main__':
-    # Roda o servidor localmente para teste
     app.run(debug=True)
