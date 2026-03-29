@@ -11,6 +11,40 @@
     <h2 class="fw-bold">📥 Ler Dados</h2>
     <p class="text-muted">Faça o upload da sua planilha de vendas (formato CSV) para o sistema.</p>
 
+    <!-- Seção de Dados Padrão para Apresentação -->
+    <div class="card shadow-sm mt-4 card-upload border-info">
+        <div class="card-body p-4">
+            <div class="mb-3">
+                <div class="fw-bold text-info">Use os dados padrão para apresentação</div>
+            </div>
+            <!-- Botão que aciona o Modal -->
+            <button type="button" class="btn btn-info text-white w-100 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#modalConfirmacaoPadrao">
+                Carregar e Processar Dados Padrão Apresentação
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div class="modal fade" id="modalConfirmacaoPadrao" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLabel">Confirmar Carregamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Você está prestes a carregar os dados de demonstração do sistema. Isso substituirá as visualizações atuais. Deseja continuar?
+                </div>
+                <div class="modal-footer">
+                    <form action="/appcomissao/comissao" method="POST" class="w-100">
+                        <input type="hidden" name="modo_apresentacao" value="true">
+                        <button type="submit" class="btn btn-info text-white w-100">Sim, carregar dados padrão</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm mt-4 card-upload">
         <div class="card-body p-4">
             <form action="/comissao" method="POST" enctype="multipart/form-data">
