@@ -26,15 +26,31 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Fechar"></button>
         </div>
 
-        <div class="offcanvas-body p-0">
-            <div class="list-group list-group-flush mt-2">
-                {% for item in menu %}
-                    <a href="{{ item.url }}" class="list-group-item list-group-item-action py-3 px-4 border-0">
-                        {{ item.nome }}
+<div class="list-group list-group-flush mt-2">
+    {% for item in menu %}
+        
+        {% if item.sub_itens %}
+            <a href="#submenu-{{ loop.index }}" data-bs-toggle="collapse" class="list-group-item list-group-item-action py-3 px-4 border-0 d-flex justify-content-between align-items-center">
+                <span>{{ item.icone }} {{ item.nome }}</span>
+                <small class="text-muted">▼</small>
+            </a>
+            
+            <div class="collapse bg-light" id="submenu-{{ loop.index }}">
+                {% for sub in item.sub_itens %}
+                    <a href="{{ sub.url }}" class="list-group-item list-group-item-action py-2 px-5 border-0 small">
+                        {{ sub.icone }} {{ sub.nome }}
                     </a>
                 {% endfor %}
             </div>
-        </div>
+
+        {% else %}
+            <a href="{{ item.url }}" class="list-group-item list-group-item-action py-3 px-4 border-0">
+                {{ item.icone }} {{ item.nome }}
+            </a>
+        {% endif %}
+        
+    {% endfor %}
+</div>
     </div>
 
     <main class="container flex-grow-1">

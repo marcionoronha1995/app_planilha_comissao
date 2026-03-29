@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block conteudo %}
+<div class="mt-4">
+    <h2 class="fw-bold">⚙️ Processar Comissões</h2>
+    <p class="text-muted">Resultados do processamento da planilha de vendas.</p>
+
+    <div class="row mt-4 mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-bg-primary shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase opacity-75">Total de Vendas</h6>
+                    <h3 class="card-text">R$ 0,00</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-bg-success shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase opacity-75">Comissões a Pagar</h6>
+                    <h3 class="card-text">R$ 0,00</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-bg-dark shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title text-uppercase opacity-75">Linhas Processadas</h6>
+                    <h3 class="card-text">0</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Nome do Vendedor</th>
+                            <th>Valor da Venda (R$)</th>
+                            <th>Taxa (%)</th>
+                            <th>Comissão (R$)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-5">
+                                Nenhum dado processado ainda. Vá em "Ler Dados" para enviar um arquivo CSV.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
