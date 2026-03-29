@@ -28,7 +28,6 @@ MENU_SISTEMA = [
 
 @app.route('/')
 def home():
-    # Removi a duplicata e centralizei aqui
     return render_template('index.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
 @app.route('/ler_dados')
