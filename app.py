@@ -8,18 +8,18 @@ app = Flask(__name__)
 VERSAO_APP = "1.1.0" 
 
 MENU_SISTEMA = [
-    {"nome": "Home", "url": "/", "icone": "🏠"},
+    {"nome": "Home", "url": "/appcomissao/", "icone": "🏠"},
     {
         "nome": "Dados", 
         "icone": "📂", 
         "sub_itens": [
-            {"nome": "Ler Dados", "url": "/ler_dados", "icone": "📥"},
-            {"nome": "Processar Comissões", "url": "/comissao", "icone": "⚙️"}
+            {"nome": "Ler Dados", "url": "/appcomissao/ler_dados", "icone": "📥"},
+            {"nome": "Processar Comissões", "url": "/appcomissao/comissao", "icone": "⚙️"}
         ]
     },
-    {"nome": "Comissões", "url": "/comissao", "icone": "💰"},
-    {"nome": "Contato", "url": "/contato", "icone": "✉️"},
-    {"nome": "Relatórios", "url": "/relatorios", "icone": "📈"}
+    {"nome": "Comissões", "url": "/appcomissao/comissao", "icone": "💰"},
+    {"nome": "Contato", "url": "/appcomissao/contato", "icone": "✉️"},
+    {"nome": "Relatórios", "url": "/appcomissao/relatorios", "icone": "📈"}
 ]
 
 # ==========================================
