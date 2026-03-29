@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 
 {% block conteudo %}
+<style>
+    .card-upload {
+        max-width: 600px;
+    }
+</style>
+
 <div class="mt-4">
     <h2 class="fw-bold">📥 Ler Dados</h2>
     <p class="text-muted">Faça o upload da sua planilha de vendas (formato CSV) para o sistema.</p>
 
-    <div class="card shadow-sm mt-4" style="max-width: 600px;">
+    <div class="card shadow-sm mt-4 card-upload">
         <div class="card-body p-4">
             <form action="/comissao" method="POST" enctype="multipart/form-data">
                 <div class="mb-4">
