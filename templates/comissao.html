@@ -2,30 +2,50 @@
 
 {% block conteudo %}
 <div class="mt-4">
-    <h2 class="fw-bold">⚙️ Processar Comissões</h2>
-    <p class="text-muted">Resultados do processamento da planilha de vendas.</p>
+    <h2 class="fw-bold">⚙️ {{ _('processar') }}</h2>
+    <p class="text-muted">CSV Processing Results.</p>
+
+    <!-- Conversor de Moedas em Tempo Real -->
+    <div class="card shadow-sm mb-4 border-info">
+        <div class="card-body">
+            <h6 class="fw-bold text-info mb-3">💱 Cotação em Tempo Real (BRL)</h6>
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <select class="form-select" id="seletor_moeda" onchange="atualizarTaxa()">
+                        <option value="" selected disabled>Escolha a Moeda</option>
+                        <option value="USD">Dólar (USD)</option>
+                        <option value="EUR">Euro (EUR)</option>
+                        <option value="BTC">Bitcoin (BTC)</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <input type="text" id="taxa_conversao" class="form-control" placeholder="Taxa de Conversão" readonly title="Valor da cotação em reais">
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row mt-4 mb-4">
         <div class="col-md-4 mb-3">
             <div class="card text-bg-primary shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title text-uppercase opacity-75">Total de Vendas</h6>
-                    <h3 class="card-text">R$ {{ "{:,.2f}".format(dados.total_vendas) if dados else "0,00" }}</h3>
+                    <h6 class="card-title text-uppercase opacity-75">{{ _('total_vendas') }}</h6>
+                    <h3 class="card-text">{{ dados.total_vendas | moeda if dados else 0.0 | moeda }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
             <div class="card text-bg-success shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title text-uppercase opacity-75">Comissões a Pagar</h6>
-                    <h3 class="card-text">R$ {{ "{:,.2f}".format(dados.total_comissoes) if dados else "0,00" }}</h3>
+                    <h6 class="card-title text-uppercase opacity-75">{{ _('comissoes_pagar') }}</h6>
+                    <h3 class="card-text">{{ dados.total_comissoes | moeda if dados else 0.0 | moeda }}</h3>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-3">
             <div class="card text-bg-dark shadow-sm h-100">
                 <div class="card-body">
-                    <h6 class="card-title text-uppercase opacity-75">Linhas Processadas</h6>
+                    <h6 class="card-title text-uppercase opacity-75">{{ _('linhas') }}</h6>
                     <h3 class="card-text">{{ dados.total_linhas if dados else "0" }}</h3>
                 </div>
             </div>
@@ -38,10 +58,10 @@
                 <table class="table table-striped table-hover mb-0">
                     <thead class="table-dark">
                         <tr>
-                            <th>Nome do Vendedor</th>
-                            <th>Valor da Venda (R$)</th>
-                            <th>Taxa (%)</th>
-                            <th>Comissão (R$)</th>
+                            <th>{{ _('vendedor') }}</th>
+                            <th>{{ _('valor_venda') }}</th>
+                            <th>{{ _('taxa') }}</th>
+                            <th>{{ _('comissao') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -55,9 +75,9 @@
                         {% for item in dados.itens %}
                         <tr>
                             <td>{{ item.vendedor }}</td>
-                            <td>{{ "{:,.2f}".format(item.valor_venda) }}</td>
+                            <td>{{ item.valor_venda | moeda }}</td>
                             <td>{{ item.taxa }}%</td>
-                            <td class="fw-bold text-success">{{ "{:,.2f}".format(item.valor_comissao) }}</td>
+                            <td class="fw-bold text-success">{{ item.valor_comissao | moeda }}</td>
                         </tr>
                         {% endfor %}
                         {% else %}
@@ -73,4 +93,30 @@
         </div>
     </div>
 </div>
+
+<script>
+function atualizarTaxa() {
+    const moeda = document.getElementById('seletor_moeda').value;
+    const inputTaxa = document.getElementById('taxa_conversao');
+    
+    if (!moeda) return;
+
+    inputTaxa.value = "Carregando...";
+
+    // Respeitando o prefixo /appcomissao configurado no DispatcherMiddleware
+    fetch(`/appcomissao/get_cotacao/${moeda}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.cotacao) {
+                inputTaxa.value = parseFloat(data.cotacao).toFixed(4);
+            } else {
+                inputTaxa.value = "Erro na cotação";
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            inputTaxa.value = "Erro de conexão";
+        });
+}
+</script>
 {% endblock %}

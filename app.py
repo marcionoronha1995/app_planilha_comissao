@@ -1,28 +1,93 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify
 import csv
 import os
 import io
+from decimal import Decimal, ROUND_HALF_UP
+import requests
 
 app = Flask(__name__)
+app.secret_key = 'chave_secreta_para_desenvolvimento_seguro'
 
 # ==========================================
 # 1. CONFIGURAÇÕES GERAIS
 # ==========================================
 VERSAO_APP = "1.1.0" 
 
+# Dicionário de traduções (Pode ser movido para um JSON externo no futuro)
+TRADUCOES = {
+    'pt': {
+        'home': 'Home', 'dados': 'Dados', 'ler_dados': 'Ler Dados', 
+        'processar': 'Processar Comissões', 'comissoes': 'Comissões', 
+        'contato': 'Contato', 'relatorios': 'Relatórios', 'moeda': 'Moeda',
+        'idioma': 'Idioma', 'vendedor': 'Nome do Vendedor', 'valor_venda': 'Valor da Venda',
+        'taxa': 'Taxa (%)', 'comissao': 'Comissão', 'total_vendas': 'Total de Vendas',
+        'comissoes_pagar': 'Comissões a Pagar', 'linhas': 'Linhas Processadas'
+    },
+    'en': {
+        'home': 'Home', 'dados': 'Data', 'ler_dados': 'Read Data', 
+        'processar': 'Process Commissions', 'comissoes': 'Commissions', 
+        'contato': 'Contact', 'relatorios': 'Reports', 'moeda': 'Currency',
+        'idioma': 'Language', 'vendedor': 'Salesperson', 'valor_venda': 'Sales Value',
+        'taxa': 'Rate (%)', 'comissao': 'Commission', 'total_vendas': 'Total Sales',
+        'comissoes_pagar': 'Commissions to Pay', 'linhas': 'Processed Rows'
+    }
+}
+
+@app.context_processor
+def inject_translate():
+    """Injeta a função _() nos templates para tradução dinâmica"""
+    def _(chave):
+        idioma = session.get('idioma', 'pt')
+        return TRADUCOES.get(idioma, TRADUCOES['pt']).get(chave, chave)
+    return dict(_=_)
+
+@app.template_filter('moeda')
+def formato_moeda_br(valor, moeda_alvo=None):
+    """Filtro para formatar valores convertidos e com símbolos"""
+    if valor is None: valor = 0.0
+    if moeda_alvo is None: moeda_alvo = session.get('moeda', 'BRL')
+    
+    # Taxas simples para demonstração
+    taxas = {'BRL': 1.0, 'USD': 0.18, 'EUR': 0.17}
+    simbolos = {'BRL': 'R$', 'USD': 'US$', 'EUR': '€'}
+    
+    valor_convertido = float(valor) * taxas.get(moeda_alvo, 1.0)
+    simbolo = simbolos.get(moeda_alvo, 'R$')
+
+    v_formatado = "{:,.2f}".format(valor_convertido)
+    v_br = v_formatado.replace(",", "v").replace(".", ",").replace("v", ".")
+    return f"{simbolo} {v_br}"
+
 MENU_SISTEMA = [
-    {"nome": "Home", "url": "/appcomissao/", "icone": "🏠"},
+    {"nome": "home", "url": "/appcomissao/", "icone": "🏠"},
     {
-        "nome": "Dados", 
+        "nome": "dados", 
         "icone": "📂", 
         "sub_itens": [
-            {"nome": "Ler Dados", "url": "/appcomissao/ler_dados", "icone": "📥"},
-            {"nome": "Processar Comissões", "url": "/appcomissao/comissao", "icone": "⚙️"}
+            {"nome": "ler_dados", "url": "/appcomissao/ler_dados", "icone": "📥"},
+            {"nome": "processar", "url": "/appcomissao/comissao", "icone": "⚙️"}
         ]
     },
-    {"nome": "Comissões", "url": "/appcomissao/comissao", "icone": "💰"},
-    {"nome": "Contato", "url": "/appcomissao/contato", "icone": "✉️"},
-    {"nome": "Relatórios", "url": "/appcomissao/relatorios", "icone": "📈"}
+    {"nome": "comissoes", "url": "/appcomissao/comissao", "icone": "💰"},
+    {
+        "nome": "moeda", 
+        "icone": "💱", 
+        "sub_itens": [
+            {"nome": "Real (BRL)", "url": "/appcomissao/set_config/moeda/BRL", "icone": "🇧🇷"},
+            {"nome": "Dólar (USD)", "url": "/appcomissao/set_config/moeda/USD", "icone": "🇺🇸"},
+            {"nome": "Euro (EUR)", "url": "/appcomissao/set_config/moeda/EUR", "icone": "🇪🇺"}
+        ]
+    },
+    {
+        "nome": "idioma", 
+        "icone": "🌐", 
+        "sub_itens": [
+            {"nome": "Português", "url": "/appcomissao/set_config/idioma/pt", "icone": "🇧🇷"},
+            {"nome": "English", "url": "/appcomissao/set_config/idioma/en", "icone": "🇺🇸"}
+        ]
+    },
+    {"nome": "contato", "url": "/appcomissao/contato", "icone": "✉️"},
+    {"nome": "relatorios", "url": "/appcomissao/relatorios", "icone": "📈"}
 ]
 
 # ==========================================
@@ -31,28 +96,32 @@ MENU_SISTEMA = [
 class ComissaoService:
     """Gerencia o processamento, cálculos e validação das comissões."""
     
-    TAXA_COMISSAO = 0.10  # 10% de comissão sobre o total da venda
+    # Usando Decimal para precisão financeira
+    TAXA_COMISSAO = Decimal('0.065')  # 6.5%
     
     @staticmethod
     def _calcular_valores_linha(linha):
         """Calcula totais e comissão para uma linha do CSV."""
         try:
-            # 1. Extração dos valores brutos (Garante 0 se a coluna estiver vazia ou ausente)
-            # Nota: Usamos os nomes exatos das colunas do arquivo dados_planilha.csv
+            # Conversão segura para Decimal
+            def para_decimal(valor):
+                if not valor or str(valor).strip() == "":
+                    return Decimal('0.00')
+                return Decimal(str(valor).replace(',', '.'))
+
             venda_total = (
-                float(linha.get('VL_SETUP', 0)) + 
-                float(linha.get('VL_TOTEM', 0)) + 
-                float(linha.get('VL_LICENÇA', 0))
+                para_decimal(linha.get('VL_SETUP', 0)) + 
+                para_decimal(linha.get('VL_TOTEM', 0)) + 
+                para_decimal(linha.get('VL_LICENÇA', 0))
             )
             
-            # 2. Cálculo da comissão (Venda Total * 10%)
-            comissao = venda_total * ComissaoService.TAXA_COMISSAO
+            comissao = (venda_total * ComissaoService.TAXA_COMISSAO).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             
             return {
                 "vendedor": linha.get('CLIENTE', 'Desconhecido'),
-                "valor_venda": venda_total,
-                "taxa": ComissaoService.TAXA_COMISSAO * 100,
-                "valor_comissao": comissao
+                "valor_venda": float(venda_total),
+                "taxa": float(ComissaoService.TAXA_COMISSAO * 100),
+                "valor_comissao": float(comissao)
             }
         except (ValueError, TypeError):
             return None
@@ -61,15 +130,15 @@ class ComissaoService:
     def _executar_processamento(leitor_csv):
         """Lógica centralizada para iterar no CSV e somar totais."""
         itens = []
-        total_vendas = 0.0
-        total_comissoes = 0.0
+        total_vendas = Decimal('0.00')
+        total_comissoes = Decimal('0.00')
 
         for linha in leitor_csv:
             resultado = ComissaoService._calcular_valores_linha(linha)
             if resultado:
                 itens.append(resultado)
-                total_vendas += resultado['valor_venda']
-                total_comissoes += resultado['valor_comissao']
+                total_vendas += Decimal(str(resultado['valor_venda']))
+                total_comissoes += Decimal(str(resultado['valor_comissao']))
 
         return {
             "itens": itens,
@@ -106,6 +175,24 @@ class ComissaoService:
         dados['origem'] = f"Upload: {arquivo.filename}"
         return dados
 
+def buscar_cotacao(moeda):
+    """Faz a busca da cotação em tempo real via API externa."""
+    try:
+        # URL da API de cotações
+        url = f"https://economia.bidu.com.br/last/{moeda}-BRL"
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        
+        dados = response.json()
+        # A chave de retorno segue o padrão MOEDABRL (ex: USDBRL)
+        chave = f"{moeda}BRL"
+        if chave in dados:
+            return float(dados[chave]['bid'])
+        return None
+    except Exception as e:
+        print(f"Erro ao buscar cotação para {moeda}: {e}")
+        return None
+
 # ==========================================
 # 2. ROTAS
 # ==========================================
@@ -120,6 +207,10 @@ def ler_dados():
 
 @app.route('/comissao', methods=['GET', 'POST'])
 def comissao():
+    # Inicialização de padrões na sessão
+    if 'moeda' not in session: session['moeda'] = 'BRL'
+    if 'idioma' not in session: session['idioma'] = 'pt'
+
     dados_processados = None
     if request.method == 'POST':
         modo_apresentacao = request.form.get('modo_apresentacao') == 'true'
@@ -131,6 +222,19 @@ def comissao():
             dados_processados = ComissaoService.processar_arquivo_upload(arquivo)
             
     return render_template('comissao.html', menu=MENU_SISTEMA, versao=VERSAO_APP, dados=dados_processados)
+
+@app.route('/get_cotacao/<moeda>')
+def get_cotacao(moeda):
+    """Rota que retorna o JSON da cotação para o frontend."""
+    valor = buscar_cotacao(moeda.upper())
+    return jsonify({"cotacao": valor})
+
+@app.route('/set_config/<tipo>/<valor>')
+def set_config(tipo, valor):
+    """Rota genérica para configurar moeda ou idioma"""
+    if tipo in ['moeda', 'idioma']:
+        session[tipo] = valor
+    return redirect(request.referrer or url_for('home'))
 
 @app.route('/contato')
 def contato():

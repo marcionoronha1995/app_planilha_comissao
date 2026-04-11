@@ -206,7 +206,14 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# Key
-app_planilha_write_key_.py
-app_planilha_key_priv
+# --- Ajustes Específicos do Projeto ---
 
+# Metadados do Windows
+[Dd]esktop.ini
+Thumbs.db
+
+# Segurança e Chaves (Padrões mais abrangentes)
+*key_priv*
+*_key_priv
+app_planilha_write_key_.py
+*.sig
