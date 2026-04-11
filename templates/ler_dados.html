@@ -8,18 +8,18 @@
 </style>
 
 <div class="mt-4">
-    <h2 class="fw-bold">📥 Ler Dados</h2>
-    <p class="text-muted">Faça o upload da sua planilha de vendas (formato CSV) para o sistema.</p>
+    <h2 class="fw-bold">📥 {{ _('ler_dados') }}</h2>
+    <p class="text-muted">{{ _('instrucao_upload') }}</p>
 
     <!-- Seção de Dados Padrão para Apresentação -->
     <div class="card shadow-sm mt-4 card-upload border-info">
         <div class="card-body p-4">
             <div class="mb-3">
-                <div class="fw-bold text-info">Use os dados padrão para apresentação</div>
+                <div class="fw-bold text-info">{{ _('dados_padrao_apresentacao') }}</div>
             </div>
             <!-- Botão que aciona o Modal -->
             <button type="button" class="btn btn-info text-white w-100 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#modalConfirmacaoPadrao">
-                Carregar e Processar Dados Padrão Apresentação
+                {{ _('btn_carregar_padrao') }}
             </button>
         </div>
     </div>
@@ -29,16 +29,16 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalLabel">Confirmar Carregamento</h5>
+                    <h5 class="modal-title" id="modalLabel">{{ _('confirmar_carregamento') }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    Você está prestes a carregar os dados de demonstração do sistema. Isso substituirá as visualizações atuais. Deseja continuar?
+                    {{ _('msg_modal_confirmacao') }}
                 </div>
                 <div class="modal-footer">
                     <form action="{{ url_for('comissao') }}" method="POST" class="w-100">
                         <input type="hidden" name="modo_apresentacao" value="true">
-                        <button type="submit" class="btn btn-info text-white w-100">Sim, carregar dados padrão</button>
+                        <button type="submit" class="btn btn-info text-white w-100">{{ _('sim_carregar_padrao_btn') }}</button>
                     </form>
                 </div>
             </div>
@@ -49,13 +49,13 @@
         <div class="card-body p-4">
             <form action="{{ url_for('comissao') }}" method="POST" enctype="multipart/form-data">
                 <div class="mb-4">
-                    <label for="arquivo_csv" class="form-label fw-bold text-secondary">Selecione o arquivo CSV</label>
+                    <label for="arquivo_csv" class="form-label fw-bold text-secondary">{{ _('selecione_csv') }}</label>
                     <input class="form-control form-control-lg" type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv" required>
-                    <div class="form-text mt-2">Apenas arquivos com extensão .csv são aceitos.</div>
+                    <div class="form-text mt-2">{{ _('apenas_csv') }}</div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
-                    Carregar e Processar Dados
+                    {{ _('btn_carregar_arquivo') }}
                 </button>
             </form>
         </div>

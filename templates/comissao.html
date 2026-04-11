@@ -3,15 +3,15 @@
 {% block conteudo %}
 <div class="mt-4">
     <h2 class="fw-bold">⚙️ {{ _('processar') }}</h2>
-    <p class="text-muted">CSV Processing Results.</p>
+    <p class="text-muted">{{ _('resultados_csv') }}</p>
 
     <!-- Conversor de Moedas em Tempo Real -->
     <div class="card shadow-sm mb-4 border-info">
         <div class="card-body">
-            <h6 class="fw-bold text-info mb-3">💱 Cotação em Tempo Real (BRL)</h6>
+            <h6 class="fw-bold text-info mb-3">💱 {{ _('cotacao_tempo_real') }}</h6>
             <div class="row g-3 align-items-center">
                 <div class="col-md-3">
-                    <label for="seletor_moeda" class="form-label small text-muted">Moeda Alvo</label>
+                    <label for="seletor_moeda" class="form-label small text-muted">{{ _('moeda_alvo') }}</label>
                     <select class="form-select" id="seletor_moeda" onchange="atualizarTaxa()" title="{{ _('moeda') }}">
                         <option value="USD">Dólar (USD)</option>
                         <option value="EUR">Euro (EUR)</option>
@@ -19,8 +19,8 @@
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <label for="taxa_conversao" class="form-label small text-muted">Câmbio Atual (R$)</label>
-                    <input type="text" id="taxa_conversao" class="form-control" placeholder="Aguardando..." readonly title="Valor da cotação em reais">
+                    <label for="taxa_conversao" class="form-label small text-muted">{{ _('cambio_atual') }}</label>
+                    <input type="text" id="taxa_conversao" class="form-control" placeholder="{{ _('aguardando') }}" readonly title="Valor da cotação em reais">
                 </div>
             </div>
         </div>
@@ -69,7 +69,7 @@
                         {% if dados %}
                         <tr>
                             <td colspan="4" class="text-center text-success fw-bold">
-                                Dados carregados via: {{ dados.origem }}
+                                {{ _('dados_carregados_via') }}: {{ dados.origem }}
                             </td>
                         </tr>
                         {# Aqui entrará o loop pelos dados reais futuramente #}
@@ -84,7 +84,7 @@
                         {% else %}
                         <tr>
                             <td colspan="4" class="text-center text-muted py-5">
-                                Nenhum dado processado ainda. Vá em "Ler Dados" para enviar um arquivo CSV.
+                                {{ _('nenhum_dado') }}
                             </td>
                         </tr>
                         {% endif %}
@@ -111,7 +111,7 @@ function atualizarTaxa() {
             if (data.cotacao !== null && data.cotacao !== undefined) {
                 inputTaxa.value = parseFloat(data.cotacao).toFixed(4);
             } else {
-                inputTaxa.value = "Cotação indisponível";
+                inputTaxa.value = "{{ _('Cotação indisponível') }}";
                 console.error('API retornou valor nulo para:', moeda);
             }
         })

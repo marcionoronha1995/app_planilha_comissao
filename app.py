@@ -22,6 +22,25 @@ TRADUCOES = {
         'idioma': 'Idioma', 'vendedor': 'Nome do Vendedor', 'valor_venda': 'Valor da Venda',
         'taxa': 'Taxa (%)', 'comissao': 'Comissão', 'total_vendas': 'Total de Vendas',
         'comissoes_pagar': 'Comissões a Pagar', 'linhas': 'Linhas Processadas'
+        , 'instrucao_inicial': 'Selecione uma opção no menu lateral para começar.',
+        'instrucao_upload': 'Faça o upload da sua planilha de vendas (formato CSV) para o sistema.',
+        'dados_padrao_apresentacao': 'Use os dados padrão para apresentação',
+        'btn_carregar_padrao': 'Carregar e Processar Dados Padrão Apresentação',
+        'confirmar_carregamento': 'Confirmar Carregamento',
+        'msg_modal_confirmacao': 'Você está prestes a carregar os dados de demonstração do sistema. Isso substituirá as visualizações atuais. Deseja continuar?',
+        'sim_carregar_padrao_btn': 'Sim, carregar dados padrão',
+        'selecione_csv': 'Selecione o arquivo CSV',
+        'apenas_csv': 'Apenas arquivos com extensão .csv são aceitos.',
+        'btn_carregar_arquivo': 'Carregar e Processar Dados',
+        'resultados_csv': 'Resultados do processamento da planilha de vendas.',
+        'cotacao_tempo_real': 'Cotação em Tempo Real (BRL)',
+        'moeda_alvo': 'Moeda Alvo',
+        'cambio_atual': 'Câmbio Atual (R$)',
+        'aguardando': 'Aguardando...',
+        'dados_carregados_via': 'Dados carregados via',
+        'nenhum_dado': 'Nenhum dado processado ainda. Vá em "Ler Dados" para enviar um arquivo CSV.',
+        'contato_titulo': 'Entre em Contato', 'contato_desc': 'Esta é uma tela de contato. Sinta-se à vontade para enviar uma mensagem.',
+        'relatorios_titulo': 'Programa de Relatórios', 'relatorios_desc': 'Bem-vindo à tela de relatórios. Aqui vamos colocar os gráficos no futuro.'
     },
     'en': {
         'home': 'Home', 'dados': 'Data', 'ler_dados': 'Read Data', 
@@ -30,6 +49,25 @@ TRADUCOES = {
         'idioma': 'Language', 'vendedor': 'Salesperson', 'valor_venda': 'Sales Value',
         'taxa': 'Rate (%)', 'comissao': 'Commission', 'total_vendas': 'Total Sales',
         'comissoes_pagar': 'Commissions to Pay', 'linhas': 'Processed Rows'
+        , 'instrucao_inicial': 'Select an option in the sidebar to start.',
+        'instrucao_upload': 'Upload your sales spreadsheet (CSV format) to the system.',
+        'dados_padrao_apresentacao': 'Use default data for presentation',
+        'btn_carregar_padrao': 'Load and Process Default Presentation Data',
+        'confirmar_carregamento': 'Confirm Loading',
+        'msg_modal_confirmacao': 'You are about to load the system demonstration data. This will replace the current views. Do you want to continue?',
+        'sim_carregar_padrao_btn': 'Yes, load default data',
+        'selecione_csv': 'Select CSV file',
+        'apenas_csv': 'Only files with .csv extension are accepted.',
+        'btn_carregar_arquivo': 'Load and Process Data',
+        'resultados_csv': 'Sales spreadsheet processing results.',
+        'cotacao_tempo_real': 'Real-Time Quote (BRL)',
+        'moeda_alvo': 'Target Currency',
+        'cambio_atual': 'Current Exchange (R$)',
+        'aguardando': 'Waiting...',
+        'dados_carregados_via': 'Data loaded via',
+        'nenhum_dado': 'No data processed yet. Go to "Read Data" to upload a CSV file.',
+        'contato_titulo': 'Contact Us', 'contato_desc': 'This is a contact screen. Feel free to send a message.',
+        'relatorios_titulo': 'Reports Program', 'relatorios_desc': 'Welcome to the reports screen. This is where we will put the charts in the future.'
     }
     ,
     'es': {
@@ -39,6 +77,25 @@ TRADUCOES = {
         'idioma': 'Idioma', 'vendedor': 'Vendedor', 'valor_venda': 'Valor de la Venta',
         'taxa': 'Tasa (%)', 'comissao': 'Comisión', 'total_vendas': 'Total de Ventas',
         'comissoes_pagar': 'Comisiones a Pagar', 'linhas': 'Líneas Procesadas'
+        , 'instrucao_inicial': 'Seleccione una opción en el menú lateral para comenzar.',
+        'instrucao_upload': 'Cargue su hoja de cálculo de ventas (formato CSV) al sistema.',
+        'dados_padrao_apresentacao': 'Utilice los datos predeterminados para la presentación',
+        'btn_carregar_padrao': 'Cargar y Procesar Datos de Presentación Predeterminados',
+        'confirmar_carregamento': 'Confirmar Carga',
+        'msg_modal_confirmacao': 'Está a punto de cargar los datos de demostración del sistema. Esto reemplazará las vistas actuales. ¿Desea continuar?',
+        'sim_carregar_padrao_btn': 'Sí, cargar datos predeterminados',
+        'selecione_csv': 'Seleccionar archivo CSV',
+        'apenas_csv': 'Sólo se aceptan archivos con extensión .csv.',
+        'btn_carregar_arquivo': 'Cargar y Procesar Datos',
+        'resultados_csv': 'Resultados del procesamiento de la hoja de cálculo de ventas.',
+        'cotacao_tempo_real': 'Cotización en Tiempo Real (BRL)',
+        'moeda_alvo': 'Moneda de Destino',
+        'cambio_atual': 'Cambio Actual (R$)',
+        'aguardando': 'Esperando...',
+        'dados_carregados_via': 'Datos cargados vía',
+        'nenhum_dado': 'Aún no se han procesado datos. Vaya a "Ler Dados" para cargar un archivo CSV.',
+        'contato_titulo': 'Contáctenos', 'contato_desc': 'Esta es una pantalla de contacto. Siéntase libre de enviar un mensaje.',
+        'relatorios_titulo': 'Programa de Informes', 'relatorios_desc': 'Bienvenido a la pantalla de informes. Aquí es donde pondremos los gráficos en el futuro.'
     }
 }
 
