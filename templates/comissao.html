@@ -31,7 +31,6 @@
             <div class="card text-bg-primary shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">{{ _('total_vendas') }}</h6>
-                    <h3 class="card-text">{{ dados.total_vendas | moeda if dados else 0.0 | moeda }}</h3>
                     <h3 class="card-text valor-convertivel" data-valor-base="{{ dados.total_vendas if dados else 0.0 }}">{{ dados.total_vendas | moeda if dados else 0.0 | moeda }}</h3>
                 </div>
             </div>
@@ -40,7 +39,6 @@
             <div class="card text-bg-success shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">{{ _('comissoes_pagar') }}</h6>
-                    <h3 class="card-text">{{ dados.total_comissoes | moeda if dados else 0.0 | moeda }}</h3>
                     <h3 class="card-text valor-convertivel" data-valor-base="{{ dados.total_comissoes if dados else 0.0 }}">{{ dados.total_comissoes | moeda if dados else 0.0 | moeda }}</h3>
                 </div>
             </div>
@@ -78,10 +76,8 @@
                         {% for item in dados.itens %}
                         <tr>
                             <td>{{ item.vendedor }}</td>
-                            <td>{{ item.valor_venda | moeda }}</td>
                             <td class="valor-convertivel" data-valor-base="{{ item.valor_venda }}">{{ item.valor_venda | moeda }}</td>
                             <td>{{ item.taxa }}%</td>
-                            <td class="fw-bold text-success">{{ item.valor_comissao | moeda }}</td>
                             <td class="fw-bold text-success valor-convertivel" data-valor-base="{{ item.valor_comissao }}">{{ item.valor_comissao | moeda }}</td>
                         </tr>
                         {% endfor %}
