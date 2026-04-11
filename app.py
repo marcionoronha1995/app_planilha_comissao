@@ -31,6 +31,15 @@ TRADUCOES = {
         'taxa': 'Rate (%)', 'comissao': 'Commission', 'total_vendas': 'Total Sales',
         'comissoes_pagar': 'Commissions to Pay', 'linhas': 'Processed Rows'
     }
+    ,
+    'es': {
+        'home': 'Inicio', 'dados': 'Datos', 'ler_dados': 'Leer Datos', 
+        'processar': 'Procesar Comisiones', 'comissoes': 'Comisiones', 
+        'contato': 'Contacto', 'relatorios': 'Informes', 'moeda': 'Moneda',
+        'idioma': 'Idioma', 'vendedor': 'Vendedor', 'valor_venda': 'Valor de la Venta',
+        'taxa': 'Tasa (%)', 'comissao': 'Comisión', 'total_vendas': 'Total de Ventas',
+        'comissoes_pagar': 'Comisiones a Pagar', 'linhas': 'Líneas Procesadas'
+    }
 }
 
 @app.context_processor
@@ -83,7 +92,8 @@ MENU_SISTEMA = [
         "icone": "🌐", 
         "sub_itens": [
             {"nome": "Português", "url": "/appcomissao/set_config/idioma/pt", "icone": "🇧🇷"},
-            {"nome": "English", "url": "/appcomissao/set_config/idioma/en", "icone": "🇺🇸"}
+            {"nome": "English", "url": "/appcomissao/set_config/idioma/en", "icone": "🇺🇸"},
+            {"nome": "Español", "url": "/appcomissao/set_config/idioma/es", "icone": "🇪🇸"}
         ]
     },
     {"nome": "contato", "url": "/appcomissao/contato", "icone": "✉️"},

@@ -1,10 +1,58 @@
 {% extends "base.html" %}
 
 {% block conteudo %}
-    
+    <style>
+        .flag-ball {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border: 3px solid #fff;
+            transition: all 0.3s ease;
+        }
+        .flag-ball:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2) !important;
+            border-color: #0d6efd;
+        }
+        .lang-link {
+            display: inline-block;
+            text-decoration: none;
+        }
+    </style>
+
     <div class="mt-4">
-        <h2>Bem-vindo ao Sistema de Comissões</h2>
-        <p class="text-muted">Selecione uma opção no menu lateral para começar.</p>
+        <h2>{{ _('home') }} - Sistema de Comissões</h2>
+        <p class="text-muted">{{ _('Selecione uma opção no menu lateral para começar.') if session.get('idioma') == 'pt' else 'Select an option in the sidebar to start.' if session.get('idioma') == 'en' else 'Seleccione una opción en el menú lateral para comenzar.' }}</p>
+
+        <!-- Seleção de Idioma com Ícones -->
+        <div class="card shadow-sm mt-5 border-0">
+            <div class="card-body p-4 text-center">
+                <h5 class="mb-4 text-secondary">{{ _('idioma') }} / Language / Idioma</h5>
+                <div class="d-flex justify-content-center gap-5">
+                    <div class="text-center">
+                        <a href="{{ url_for('set_config', tipo='idioma', valor='pt') }}" class="lang-link">
+                            <img src="https://flagcdn.com/w160/br.png" alt="Brasil" class="rounded-circle shadow flag-ball mb-2">
+                            <div class="fw-bold text-dark">Português</div>
+                            {% if session.get('idioma', 'pt') == 'pt' %}<span class="badge bg-success">Ativo</span>{% endif %}
+                        </a>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ url_for('set_config', tipo='idioma', valor='en') }}" class="lang-link">
+                            <img src="https://flagcdn.com/w160/us.png" alt="English" class="rounded-circle shadow flag-ball mb-2">
+                            <div class="fw-bold text-dark">English</div>
+                            {% if session.get('idioma') == 'en' %}<span class="badge bg-success">Active</span>{% endif %}
+                        </a>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ url_for('set_config', tipo='idioma', valor='es') }}" class="lang-link">
+                            <img src="https://flagcdn.com/w160/es.png" alt="Español" class="rounded-circle shadow flag-ball mb-2">
+                            <div class="fw-bold text-dark">Español</div>
+                            {% if session.get('idioma') == 'es' %}<span class="badge bg-success">Activo</span>{% endif %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 {% endblock %}
