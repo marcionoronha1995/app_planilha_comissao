@@ -10,7 +10,7 @@
             <div class="card text-bg-primary shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">Total de Vendas</h6>
-                    <h3 class="card-text">R$ 0,00</h3>
+                    <h3 class="card-text">R$ {{ "{:,.2f}".format(dados.total_vendas) if dados else "0,00" }}</h3>
                 </div>
             </div>
         </div>
@@ -18,7 +18,7 @@
             <div class="card text-bg-success shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">Comissões a Pagar</h6>
-                    <h3 class="card-text">R$ 0,00</h3>
+                    <h3 class="card-text">R$ {{ "{:,.2f}".format(dados.total_comissoes) if dados else "0,00" }}</h3>
                 </div>
             </div>
         </div>
@@ -26,7 +26,7 @@
             <div class="card text-bg-dark shadow-sm h-100">
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">Linhas Processadas</h6>
-                    <h3 class="card-text">0</h3>
+                    <h3 class="card-text">{{ dados.total_linhas if dados else "0" }}</h3>
                 </div>
             </div>
         </div>
@@ -45,11 +45,28 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {% if dados %}
+                        <tr>
+                            <td colspan="4" class="text-center text-success fw-bold">
+                                Dados carregados via: {{ dados.origem }}
+                            </td>
+                        </tr>
+                        {# Aqui entrará o loop pelos dados reais futuramente #}
+                        {% for item in dados.itens %}
+                        <tr>
+                            <td>{{ item.vendedor }}</td>
+                            <td>{{ "{:,.2f}".format(item.valor_venda) }}</td>
+                            <td>{{ item.taxa }}%</td>
+                            <td class="fw-bold text-success">{{ "{:,.2f}".format(item.valor_comissao) }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
                         <tr>
                             <td colspan="4" class="text-center text-muted py-5">
                                 Nenhum dado processado ainda. Vá em "Ler Dados" para enviar um arquivo CSV.
                             </td>
                         </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
