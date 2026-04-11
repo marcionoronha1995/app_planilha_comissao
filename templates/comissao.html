@@ -10,16 +10,17 @@
         <div class="card-body">
             <h6 class="fw-bold text-info mb-3">💱 Cotação em Tempo Real (BRL)</h6>
             <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <select class="form-select" id="seletor_moeda" onchange="atualizarTaxa()">
-                        <option value="" selected disabled>Escolha a Moeda</option>
+                <div class="col-md-3">
+                    <label for="seletor_moeda" class="form-label small text-muted">Moeda Alvo</label>
+                    <select class="form-select" id="seletor_moeda" onchange="atualizarTaxa()" title="{{ _('moeda') }}">
                         <option value="USD">Dólar (USD)</option>
                         <option value="EUR">Euro (EUR)</option>
                         <option value="BTC">Bitcoin (BTC)</option>
                     </select>
                 </div>
-                <div class="col-auto">
-                    <input type="text" id="taxa_conversao" class="form-control" placeholder="Taxa de Conversão" readonly title="Valor da cotação em reais">
+                <div class="col-md-3">
+                    <label for="taxa_conversao" class="form-label small text-muted">Câmbio Atual (R$)</label>
+                    <input type="text" id="taxa_conversao" class="form-control" placeholder="Aguardando..." readonly title="Valor da cotação em reais">
                 </div>
             </div>
         </div>
@@ -31,6 +32,7 @@
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">{{ _('total_vendas') }}</h6>
                     <h3 class="card-text">{{ dados.total_vendas | moeda if dados else 0.0 | moeda }}</h3>
+                    <h3 class="card-text valor-convertivel" data-valor-base="{{ dados.total_vendas if dados else 0.0 }}">{{ dados.total_vendas | moeda if dados else 0.0 | moeda }}</h3>
                 </div>
             </div>
         </div>
@@ -39,6 +41,7 @@
                 <div class="card-body">
                     <h6 class="card-title text-uppercase opacity-75">{{ _('comissoes_pagar') }}</h6>
                     <h3 class="card-text">{{ dados.total_comissoes | moeda if dados else 0.0 | moeda }}</h3>
+                    <h3 class="card-text valor-convertivel" data-valor-base="{{ dados.total_comissoes if dados else 0.0 }}">{{ dados.total_comissoes | moeda if dados else 0.0 | moeda }}</h3>
                 </div>
             </div>
         </div>
@@ -60,7 +63,7 @@
                         <tr>
                             <th>{{ _('vendedor') }}</th>
                             <th>{{ _('valor_venda') }}</th>
-                            <th>{{ _('taxa') }}</th>
+                            <th>{{ _('taxa') }} (Comissão)</th>
                             <th>{{ _('comissao') }}</th>
                         </tr>
                     </thead>
@@ -76,8 +79,10 @@
                         <tr>
                             <td>{{ item.vendedor }}</td>
                             <td>{{ item.valor_venda | moeda }}</td>
+                            <td class="valor-convertivel" data-valor-base="{{ item.valor_venda }}">{{ item.valor_venda | moeda }}</td>
                             <td>{{ item.taxa }}%</td>
                             <td class="fw-bold text-success">{{ item.valor_comissao | moeda }}</td>
+                            <td class="fw-bold text-success valor-convertivel" data-valor-base="{{ item.valor_comissao }}">{{ item.valor_comissao | moeda }}</td>
                         </tr>
                         {% endfor %}
                         {% else %}
@@ -107,16 +112,28 @@ function atualizarTaxa() {
     fetch(`/appcomissao/get_cotacao/${moeda}`)
         .then(response => response.json())
         .then(data => {
-            if (data.cotacao) {
+            if (data.cotacao !== null && data.cotacao !== undefined) {
                 inputTaxa.value = parseFloat(data.cotacao).toFixed(4);
             } else {
-                inputTaxa.value = "Erro na cotação";
+                inputTaxa.value = "Cotação indisponível";
+                console.error('API retornou valor nulo para:', moeda);
             }
         })
         .catch(error => {
             console.error('Erro:', error);
             inputTaxa.value = "Erro de conexão";
         });
+}
+
+function formatarMoedaJS(valor, sigla) {
+    const simbolos = { 'BRL': 'R$', 'USD': 'US$', 'EUR': '€', 'BTC': '₿' };
+    const simbolo = simbolos[sigla] || 'R$';
+    
+    // Formatação seguindo o padrão brasileiro (ex: R$ 1.234,56)
+    const formatado = valor.toFixed(2).replace('.', ',');
+    const partes = formatado.split(',');
+    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `${simbolo} ${partes.join(',')}`;
 }
 </script>
 {% endblock %}

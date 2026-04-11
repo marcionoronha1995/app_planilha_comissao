@@ -97,7 +97,7 @@ class ComissaoService:
     """Gerencia o processamento, cálculos e validação das comissões."""
     
     # Usando Decimal para precisão financeira
-    TAXA_COMISSAO = Decimal('0.065')  # 6.5%
+    TAXA_COMISSAO = Decimal('0.10')  # Voltando para 10% conforme o objetivo inicial
     
     @staticmethod
     def _calcular_valores_linha(linha):
@@ -178,14 +178,14 @@ class ComissaoService:
 def buscar_cotacao(moeda):
     """Faz a busca da cotação em tempo real via API externa."""
     try:
-        # URL da API de cotações
-        url = f"https://economia.bidu.com.br/last/{moeda}-BRL"
-        response = requests.get(url, timeout=10)
+        # Utilizando o endpoint direto da AwesomeAPI para maior estabilidade
+        url = f"https://economia.awesomeapi.com.br/last/{moeda}-BRL"
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         
         dados = response.json()
         # A chave de retorno segue o padrão MOEDABRL (ex: USDBRL)
-        chave = f"{moeda}BRL"
+        chave = f"{moeda.upper()}BRL"
         if chave in dados:
             return float(dados[chave]['bid'])
         return None
