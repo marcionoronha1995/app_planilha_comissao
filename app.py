@@ -163,45 +163,46 @@ MENU_SISTEMA = [
 class ComissaoService:
     """Gerencia o processamento, cálculos e validação das comissões."""
     
-    # Usando Decimal para precisão financeira
-    TAXA_COMISSAO = Decimal('0.10')  # Voltando para 10% conforme o objetivo inicial
-    
     @staticmethod
-    def _calcular_valores_linha(linha):
+    def para_decimal(valor):
+        """Converte strings de moeda para Decimal tratando separadores brasileiros."""
+        if not valor or str(valor).strip() == "":
+            return Decimal('0.00')
+        v = str(valor).strip()
+        if ',' in v and '.' in v: # Formato 1.234,56
+            v = v.replace('.', '').replace(',', '.')
+        return Decimal(v.replace(',', '.'))
+
+    @staticmethod
+    def _calcular_valores_linha(linha, taxa):
         """Calcula totais e comissão para uma linha do CSV."""
         try:
-            # Conversão segura para Decimal
-            def para_decimal(valor):
-                if not valor or str(valor).strip() == "":
-                    return Decimal('0.00')
-                return Decimal(str(valor).replace(',', '.'))
-
             venda_total = (
-                para_decimal(linha.get('VL_SETUP', 0)) + 
-                para_decimal(linha.get('VL_TOTEM', 0)) + 
-                para_decimal(linha.get('VL_LICENÇA', 0))
+                ComissaoService.para_decimal(linha.get('VL_SETUP', 0)) + 
+                ComissaoService.para_decimal(linha.get('VL_TOTEM', 0)) + 
+                ComissaoService.para_decimal(linha.get('VL_LICENÇA', 0))
             )
             
-            comissao = (venda_total * ComissaoService.TAXA_COMISSAO).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+            comissao = (venda_total * taxa).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
             
             return {
                 "vendedor": linha.get('CLIENTE', 'Desconhecido'),
                 "valor_venda": float(venda_total),
-                "taxa": float(ComissaoService.TAXA_COMISSAO * 100),
+                "taxa": float(taxa * 100),
                 "valor_comissao": float(comissao)
             }
         except (ValueError, TypeError):
             return None
 
     @staticmethod
-    def _executar_processamento(leitor_csv):
+    def _executar_processamento(leitor_csv, taxa):
         """Lógica centralizada para iterar no CSV e somar totais."""
         itens = []
         total_vendas = Decimal('0.00')
         total_comissoes = Decimal('0.00')
 
         for linha in leitor_csv:
-            resultado = ComissaoService._calcular_valores_linha(linha)
+            resultado = ComissaoService._calcular_valores_linha(linha, taxa)
             if resultado:
                 itens.append(resultado)
                 total_vendas += Decimal(str(resultado['valor_venda']))
@@ -215,7 +216,7 @@ class ComissaoService:
         }
 
     @staticmethod
-    def carregar_dados_padrao():
+    def carregar_dados_padrao(taxa):
         """Lê o arquivo local dados_planilha.csv."""
         caminho_arquivo = os.path.join(os.path.dirname(__file__), "dados_planilha.csv")
         
@@ -224,12 +225,12 @@ class ComissaoService:
 
         with open(caminho_arquivo, mode='r', encoding='utf-8') as f:
             leitor = csv.DictReader(f)
-            dados = ComissaoService._executar_processamento(leitor)
+            dados = ComissaoService._executar_processamento(leitor, taxa)
             dados['origem'] = "Arquivo Padrão (Local)"
             return dados
 
     @staticmethod
-    def processar_arquivo_upload(arquivo):
+    def processar_arquivo_upload(arquivo, taxa):
         """Processa o arquivo enviado via formulário."""
         if not arquivo or arquivo.filename == '':
             return None
@@ -238,7 +239,7 @@ class ComissaoService:
         stream = io.StringIO(arquivo.stream.read().decode("UTF8"), newline=None)
         leitor = csv.DictReader(stream)
         
-        dados = ComissaoService._executar_processamento(leitor)
+        dados = ComissaoService._executar_processamento(leitor, taxa)
         dados['origem'] = f"Upload: {arquivo.filename}"
         return dados
 
@@ -277,16 +278,20 @@ def comissao():
     # Inicialização de padrões na sessão
     if 'moeda' not in session: session['moeda'] = 'BRL'
     if 'idioma' not in session: session['idioma'] = 'pt'
+    if 'taxa' not in session: session['taxa'] = '10'
+
+    # Converte a taxa da sessão para Decimal (ex: "10" vira 0.10)
+    valor_taxa = Decimal(session.get('taxa', '10')) / Decimal('100')
 
     dados_processados = None
     if request.method == 'POST':
         modo_apresentacao = request.form.get('modo_apresentacao') == 'true'
         
         if modo_apresentacao:
-            dados_processados = ComissaoService.carregar_dados_padrao()
+            dados_processados = ComissaoService.carregar_dados_padrao(taxa=valor_taxa)
         else:
             arquivo = request.files.get('arquivo_csv')
-            dados_processados = ComissaoService.processar_arquivo_upload(arquivo)
+            dados_processados = ComissaoService.processar_arquivo_upload(arquivo, taxa=valor_taxa)
             
     return render_template('comissao.html', menu=MENU_SISTEMA, versao=VERSAO_APP, dados=dados_processados)
 
@@ -299,7 +304,7 @@ def get_cotacao(moeda):
 @app.route('/set_config/<tipo>/<valor>')
 def set_config(tipo, valor):
     """Rota genérica para configurar moeda ou idioma"""
-    if tipo in ['moeda', 'idioma']:
+    if tipo in ['moeda', 'idioma', 'taxa']:
         session[tipo] = valor
     return redirect(request.referrer or url_for('home'))
 

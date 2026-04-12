@@ -18,11 +18,40 @@
             display: inline-block;
             text-decoration: none;
         }
+        .taxa-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .taxa-card:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9ff;
+        }
+        .taxa-card.active {
+            border-color: #198754;
+            background-color: #e8f5e9;
+        }
     </style>
 
     <div class="mt-4">
         <h2>{{ _('home') }} - Sistema de Comissões</h2>
         <p class="text-muted">{{ _('instrucao_inicial') }}</p>
+
+        <!-- Seleção de Taxa de Comissão -->
+        <div class="card shadow-sm mt-4 border-0">
+            <div class="card-body p-4">
+                <h5 class="mb-4 text-secondary text-center">💰 {{ _('selecione_taxa') }}</h5>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    {% for valor in ['3', '5', '6', '10'] %}
+                    <a href="{{ url_for('set_config', tipo='taxa', valor=valor) }}" class="text-decoration-none">
+                        <div class="card taxa-card p-3 text-center shadow-sm {{ 'active' if session.get('taxa', '10') == valor else '' }}" style="width: 100px;">
+                            <h4 class="fw-bold mb-0 {{ 'text-success' if session.get('taxa', '10') == valor else 'text-primary' }}">{{ valor }}%</h4>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
 
         <!-- Seleção de Idioma com Ícones -->
         <div class="card shadow-sm mt-5 border-0">
