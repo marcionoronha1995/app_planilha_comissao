@@ -12,7 +12,7 @@ app.secret_key = 'chave_secreta_para_desenvolvimento_seguro'
 # ==========================================
 # 1. CONFIGURAÇÕES GERAIS
 # ==========================================
-VERSAO_APP = "1.1.0" 
+VERSAO_APP = "1.2.0" 
 
 # Dicionário de traduções (Pode ser movido para um JSON externo no futuro)
 TRADUCOES = {
