@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask import Flask, render_template, request, session, redirect, url_for, jsonify, flash
 import csv
 import os
 import io
 from decimal import Decimal, ROUND_HALF_UP
+from datetime import datetime
 import requests
 
 app = Flask(__name__)
@@ -39,7 +40,17 @@ TRADUCOES = {
         'aguardando': 'Aguardando...',
         'dados_carregados_via': 'Dados carregados via',
         'nenhum_dado': 'Nenhum dado processado ainda. Vá em "Ler Dados" para enviar um arquivo CSV.',
-        'contato_titulo': 'Entre em Contato', 'contato_desc': 'Esta é uma tela de contato. Sinta-se à vontade para enviar uma mensagem.',
+        'contato_titulo': 'Entre em Contato', 
+        'contato_desc': 'Esta é uma tela de contato. Sinta-se à vontade para enviar uma mensagem.',
+        'label_nome': 'Nome', 'label_email': 'E-mail', 'label_telefone': 'Telefone', 
+        'label_mensagem': 'Sua Mensagem', 'btn_enviar': 'Enviar Mensagem',
+        'placeholder_nome': 'Digite seu nome completo',
+        'placeholder_email': 'exemplo@email.com',
+        'placeholder_telefone': '(00) 99999-9999',
+        'placeholder_mensagem': 'Como podemos ajudar você hoje?',
+        'msg_sucesso': 'Obrigado, {nome}! Recebemos sua mensagem e entraremos em contato em breve.',
+        'msg_erro_validacao': 'Dados inválidos ou e-mail malformatado.',
+        'msg_erro_interno': 'Ocorreu um erro interno ao enviar.',
         'relatorios_titulo': 'Programa de Relatórios', 'relatorios_desc': 'Bem-vindo à tela de relatórios. Aqui vamos colocar os gráficos no futuro.'
     },
     'en': {
@@ -66,7 +77,17 @@ TRADUCOES = {
         'aguardando': 'Waiting...',
         'dados_carregados_via': 'Data loaded via',
         'nenhum_dado': 'No data processed yet. Go to "Read Data" to upload a CSV file.',
-        'contato_titulo': 'Contact Us', 'contato_desc': 'This is a contact screen. Feel free to send a message.',
+        'contato_titulo': 'Contact Us', 
+        'contato_desc': 'This is a contact screen. Feel free to send a message.',
+        'label_nome': 'Full Name', 'label_email': 'Email Address', 'label_telefone': 'Phone Number', 
+        'label_mensagem': 'Your Message', 'btn_enviar': 'Send Message',
+        'placeholder_nome': 'Enter your full name',
+        'placeholder_email': 'example@email.com',
+        'placeholder_telefone': '+1 (000) 000-0000',
+        'placeholder_mensagem': 'How can we help you today?',
+        'msg_sucesso': 'Thank you, {nome}! We have received your message and will get back to you soon.',
+        'msg_erro_validacao': 'Invalid data or malformed email.',
+        'msg_erro_interno': 'An internal error occurred while sending.',
         'relatorios_titulo': 'Reports Program', 'relatorios_desc': 'Welcome to the reports screen. This is where we will put the charts in the future.'
     }
     ,
@@ -94,7 +115,17 @@ TRADUCOES = {
         'aguardando': 'Esperando...',
         'dados_carregados_via': 'Datos cargados vía',
         'nenhum_dado': 'Aún no se han procesado datos. Vaya a "Ler Dados" para cargar un archivo CSV.',
-        'contato_titulo': 'Contáctenos', 'contato_desc': 'Esta es una pantalla de contacto. Siéntase libre de enviar un mensaje.',
+        'contato_titulo': 'Contáctenos', 
+        'contato_desc': 'Esta es una pantalla de contacto. Siéntase libre de enviar un mensaje.',
+        'label_nome': 'Nombre Completo', 'label_email': 'Correo electrónico', 'label_telefone': 'Teléfono', 
+        'label_mensagem': 'Su Mensaje', 'btn_enviar': 'Enviar Mensaje',
+        'placeholder_nome': 'Escriba su nombre completo',
+        'placeholder_email': 'ejemplo@correo.com',
+        'placeholder_telefone': '+34 000 000 000',
+        'placeholder_mensagem': '¿Cómo podemos ayudarle hoy?',
+        'msg_sucesso': '¡Gracias, {nome}! Hemos recibido su mensaje y nos pondremos en contacto en breve.',
+        'msg_erro_validacao': 'Datos inválidos o correo malformado.',
+        'msg_erro_interno': 'Ocurrió un error interno al enviar.',
         'relatorios_titulo': 'Programa de Informes', 'relatorios_desc': 'Bienvenido a la pantalla de informes. Aquí es donde pondremos los gráficos en el futuro.'
     }
 }
@@ -315,14 +346,19 @@ def contato():
 @app.route('/enviar_contato', methods=['POST'])
 def enviar_contato():
     """Recebe e processa os dados do formulário de contato"""
+    idioma = session.get('idioma', 'pt')
+    trad = TRADUCOES.get(idioma, TRADUCOES['pt'])
     try:
         nome = request.form.get('nome')
         telefone = request.form.get('telefone')
         email = request.form.get('email')
+        mensagem = request.form.get('mensagem')
+        data_hora = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 
         # Validação básica de servidor
         if not nome or not email or "@" not in email:
-            return jsonify({"status": "error", "message": "Dados inválidos ou e-mail malformatado."}), 400
+            flash(trad['msg_erro_validacao'], "danger")
+            return redirect(url_for('contato'))
 
         # Salva o contato em um arquivo CSV local para persistência
         caminho_contatos = os.path.join(os.path.dirname(__file__), "contatos_recebidos.csv")
@@ -331,19 +367,18 @@ def enviar_contato():
         with open(caminho_contatos, mode='a', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             if not file_exists:
-                writer.writerow(['Nome', 'Email', 'Telefone']) # Cabeçalho
-            writer.writerow([nome, email, telefone])
+                writer.writerow(['Data/Hora', 'Nome', 'Email', 'Telefone', 'Mensagem']) # Cabeçalho
+            writer.writerow([data_hora, nome, email, telefone, mensagem])
 
-        print(f"Novo contato recebido: {nome} - {email} - {telefone}")
+        print(f"[{data_hora}] Novo contato: {nome} <{email}>")
         
-        return jsonify({
-            "status": "success", 
-            "message": f"Obrigado, {nome}! Recebemos sua mensagem e entraremos em contato em breve."
-        })
+        flash(trad['msg_sucesso'].format(nome=nome), "success")
+        return redirect(url_for('contato'))
 
     except Exception as e:
         print(f"Erro ao processar contato: {e}")
-        return jsonify({"status": "error", "message": "Ocorreu um erro interno ao enviar."}), 500
+        flash(trad['msg_erro_interno'], "danger")
+        return redirect(url_for('contato'))
 
 @app.route('/relatorios')
 def relatorios():
