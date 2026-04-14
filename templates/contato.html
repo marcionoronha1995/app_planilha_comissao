@@ -3,4 +3,87 @@
 {% block conteudo %}
     <h2 class="mt-4">✉️ {{ _('contato_titulo') }}</h2>
     <p>{{ _('contato_desc') }}</p>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <form id="formContato" onsubmit="enviarFormulario(event)">
+                        <div class="mb-3">
+                            <label for="nome" class="form-label fw-bold">Nome Completo</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required placeholder="Ex: João Silva">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="telefone" class="form-label fw-bold">Telefone / WhatsApp</label>
+                            <input type="tel" class="form-control" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-bold">E-mail</label>
+                            <input type="email" class="form-control" id="email" name="email" required placeholder="seuemail@exemplo.com">
+                            <div class="form-text">Nunca compartilharemos seu e-mail com terceiros.</div>
+                        </div>
+
+                        <div id="mensagemFeedback" class="alert d-none mt-3"></div>
+
+                        <button type="submit" id="btnEnviar" class="btn btn-primary w-100 py-2 mt-3 fw-bold">
+                            <span id="btnTexto">Enviar Mensagem</span>
+                            <span id="btnLoader" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function enviarFormulario(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('formContato');
+        const btn = document.getElementById('btnEnviar');
+        const btnTexto = document.getElementById('btnTexto');
+        const btnLoader = document.getElementById('btnLoader');
+        const feedback = document.getElementById('mensagemFeedback');
+
+        // Feedback visual de carregamento
+        btn.disabled = true;
+        btnTexto.innerText = "Enviando...";
+        btnLoader.classList.remove('d-none');
+        feedback.classList.add('d-none');
+
+        const formData = new FormData(form);
+
+        // Respeitando o prefixo /appcomissao configurado no servidor
+        fetch('/appcomissao/enviar_contato', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            feedback.classList.remove('d-none', 'alert-danger', 'alert-success');
+            
+            if (data.status === 'success') {
+                feedback.classList.add('alert-success');
+                feedback.innerText = data.message;
+                form.reset(); // Limpa o formulário em caso de sucesso
+            } else {
+                feedback.classList.add('alert-danger');
+                feedback.innerText = data.message;
+            }
+        })
+        .catch(error => {
+            feedback.classList.remove('d-none');
+            feedback.classList.add('alert-danger');
+            feedback.innerText = "Erro ao conectar com o servidor. Tente novamente.";
+            console.error('Erro:', error);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btnTexto.innerText = "Enviar Mensagem";
+            btnLoader.classList.add('d-none');
+        });
+    }
+    </script>
 {% endblock %}

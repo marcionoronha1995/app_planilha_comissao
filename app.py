@@ -312,6 +312,39 @@ def set_config(tipo, valor):
 def contato():
     return render_template('contato.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
 
+@app.route('/enviar_contato', methods=['POST'])
+def enviar_contato():
+    """Recebe e processa os dados do formulário de contato"""
+    try:
+        nome = request.form.get('nome')
+        telefone = request.form.get('telefone')
+        email = request.form.get('email')
+
+        # Validação básica de servidor
+        if not nome or not email or "@" not in email:
+            return jsonify({"status": "error", "message": "Dados inválidos ou e-mail malformatado."}), 400
+
+        # Salva o contato em um arquivo CSV local para persistência
+        caminho_contatos = os.path.join(os.path.dirname(__file__), "contatos_recebidos.csv")
+        file_exists = os.path.isfile(caminho_contatos)
+        
+        with open(caminho_contatos, mode='a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(['Nome', 'Email', 'Telefone']) # Cabeçalho
+            writer.writerow([nome, email, telefone])
+
+        print(f"Novo contato recebido: {nome} - {email} - {telefone}")
+        
+        return jsonify({
+            "status": "success", 
+            "message": f"Obrigado, {nome}! Recebemos sua mensagem e entraremos em contato em breve."
+        })
+
+    except Exception as e:
+        print(f"Erro ao processar contato: {e}")
+        return jsonify({"status": "error", "message": "Ocorreu um erro interno ao enviar."}), 500
+
 @app.route('/relatorios')
 def relatorios():
     return render_template('relatorios.html', menu=MENU_SISTEMA, versao=VERSAO_APP)

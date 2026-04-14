@@ -110,6 +110,13 @@ function atualizarTaxa() {
         .then(data => {
             if (data.cotacao !== null && data.cotacao !== undefined) {
                 inputTaxa.value = parseFloat(data.cotacao).toFixed(4);
+                
+                // Atualiza todos os valores na tela
+                const cotacao = parseFloat(data.cotacao);
+                document.querySelectorAll('.valor-convertivel').forEach(el => {
+                    const valorBase = parseFloat(el.getAttribute('data-valor-base'));
+                    el.innerText = formatarMoedaJS(valorBase / cotacao, moeda);
+                });
             } else {
                 inputTaxa.value = "{{ _('Cotação indisponível') }}";
                 console.error('API retornou valor nulo para:', moeda);
