@@ -5,6 +5,10 @@ import io
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
 import requests
+import time
+
+# Cache global para evitar excesso de chamadas à API (expira em 5 minutos)
+CACHE_TAXAS = {}
 
 app = Flask(__name__)
 app.secret_key = 'chave_secreta_para_desenvolvimento_seguro'
@@ -141,17 +145,22 @@ def inject_translate():
 @app.template_filter('moeda')
 def formato_moeda_br(valor, moeda_alvo=None):
     """Filtro para formatar valores convertidos e com símbolos"""
-    if valor is None: valor = 0.0
+    if valor is None: valor = 0
     if moeda_alvo is None: moeda_alvo = session.get('moeda', 'BRL')
     
-    # Taxas simples para demonstração
-    taxas = {'BRL': 1.0, 'USD': 0.18, 'EUR': 0.17}
+    # Obter taxa real via nossa função de busca
+    taxa_conversao = 1.0
+    if moeda_alvo != 'BRL':
+        valor_venda_em_brl = buscar_cotacao(moeda_alvo)
+        if valor_venda_em_brl:
+            taxa_conversao = 1.0 / valor_venda_em_brl
+
     simbolos = {'BRL': 'R$', 'USD': 'US$', 'EUR': '€'}
-    
-    valor_convertido = float(valor) * taxas.get(moeda_alvo, 1.0)
+    valor_convertido = float(valor) * taxa_conversao
     simbolo = simbolos.get(moeda_alvo, 'R$')
 
-    v_formatado = "{:,.2f}".format(valor_convertido)
+    v_formatado = "{:,.2f}" if moeda_alvo != 'BTC' else "{:,.8f}"
+    v_formatado = v_formatado.format(valor_convertido)
     v_br = v_formatado.replace(",", "v").replace(".", ",").replace("v", ".")
     return f"{simbolo} {v_br}"
 
@@ -276,17 +285,27 @@ class ComissaoService:
 
 def buscar_cotacao(moeda):
     """Faz a busca da cotação em tempo real via API externa."""
+    moeda = moeda.upper()
+    agora = time.time()
+    
+    # Verifica se temos a cotação no cache e se tem menos de 5 minutos
+    if moeda in CACHE_TAXAS:
+        valor, timestamp = CACHE_TAXAS[moeda]
+        if agora - timestamp < 300:
+            return valor
+
     try:
-        # Utilizando o endpoint direto da AwesomeAPI para maior estabilidade
         url = f"https://economia.awesomeapi.com.br/last/{moeda}-BRL"
         response = requests.get(url, timeout=5)
         response.raise_for_status()
         
         dados = response.json()
-        # A chave de retorno segue o padrão MOEDABRL (ex: USDBRL)
-        chave = f"{moeda.upper()}BRL"
-        if chave in dados:
-            return float(dados[chave]['bid'])
+        chave = f"{moeda}BRL"
+        if chave in dados and 'bid' in dados[chave]:
+            valor = float(dados[chave]['bid'])
+            if valor > 0:
+                CACHE_TAXAS[moeda] = (valor, agora)
+                return valor
         return None
     except Exception as e:
         print(f"Erro ao buscar cotação para {moeda}: {e}")

@@ -1,7 +1,5 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[codz]
-*$py.class
+# Arquivos de dados gerados em tempo de execução
+contatos_recebidos.csv
 
 # C extensions
 *.so
@@ -217,3 +215,13 @@ Thumbs.db
 *_key_priv
 app_planilha_write_key_.py
 *.sig
+
+# Arquivo de execução principal (se não for necessário para o controle de versão)
+
+iniciar_projeto.py
+
+# --- Arquivo de contatos ---
+
+contatos_recebidos.csv
+# Chaves privadas (Segurança)
+../app_planilha_key_priv

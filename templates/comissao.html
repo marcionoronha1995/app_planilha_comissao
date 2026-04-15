@@ -12,15 +12,18 @@
             <div class="row g-3 align-items-center">
                 <div class="col-md-3">
                     <label for="seletor_moeda" class="form-label small text-muted">{{ _('moeda_alvo') }}</label>
-                    <select class="form-select" id="seletor_moeda" onchange="atualizarTaxa()" title="{{ _('moeda') }}">
-                        <option value="USD">Dólar (USD)</option>
-                        <option value="EUR">Euro (EUR)</option>
-                        <option value="BTC">Bitcoin (BTC)</option>
+                    <select class="form-select" id="seletor_moeda" 
+                            onchange="window.location.href='/appcomissao/set_config/moeda/' + this.value" title="{{ _('moeda') }}">
+                        <option value="BRL" {% if session.get('moeda') == 'BRL' %}selected{% endif %}>Real (BRL)</option>
+                        <option value="USD" {% if session.get('moeda') == 'USD' %}selected{% endif %}>Dólar (USD)</option>
+                        <option value="EUR" {% if session.get('moeda') == 'EUR' %}selected{% endif %}>Euro (EUR)</option>
+                        <option value="BTC" {% if session.get('moeda') == 'BTC' %}selected{% endif %}>Bitcoin (BTC)</option>
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label for="taxa_conversao" class="form-label small text-muted">{{ _('cambio_atual') }}</label>
-                    <input type="text" id="taxa_conversao" class="form-control" placeholder="{{ _('aguardando') }}" readonly title="Valor da cotação em reais">
+                    <input type="text" id="taxa_conversao" class="form-control" 
+                           value="{{ 1.0 | moeda('BRL') if session.get('moeda') == 'BRL' else 1.0 | moeda }}" readonly>
                 </div>
             </div>
         </div>
@@ -95,48 +98,4 @@
     </div>
 </div>
 
-<script>
-function atualizarTaxa() {
-    const moeda = document.getElementById('seletor_moeda').value;
-    const inputTaxa = document.getElementById('taxa_conversao');
-    
-    if (!moeda) return;
-
-    inputTaxa.value = "Carregando...";
-
-    // Respeitando o prefixo /appcomissao configurado no DispatcherMiddleware
-    fetch(`/appcomissao/get_cotacao/${moeda}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.cotacao !== null && data.cotacao !== undefined) {
-                inputTaxa.value = parseFloat(data.cotacao).toFixed(4);
-                
-                // Atualiza todos os valores na tela
-                const cotacao = parseFloat(data.cotacao);
-                document.querySelectorAll('.valor-convertivel').forEach(el => {
-                    const valorBase = parseFloat(el.getAttribute('data-valor-base'));
-                    el.innerText = formatarMoedaJS(valorBase / cotacao, moeda);
-                });
-            } else {
-                inputTaxa.value = "{{ _('Cotação indisponível') }}";
-                console.error('API retornou valor nulo para:', moeda);
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            inputTaxa.value = "Erro de conexão";
-        });
-}
-
-function formatarMoedaJS(valor, sigla) {
-    const simbolos = { 'BRL': 'R$', 'USD': 'US$', 'EUR': '€', 'BTC': '₿' };
-    const simbolo = simbolos[sigla] || 'R$';
-    
-    // Formatação seguindo o padrão brasileiro (ex: R$ 1.234,56)
-    const formatado = valor.toFixed(2).replace('.', ',');
-    const partes = formatado.split(',');
-    partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return `${simbolo} ${partes.join(',')}`;
-}
-</script>
 {% endblock %}
