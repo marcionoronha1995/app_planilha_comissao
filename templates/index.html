@@ -1,37 +1,6 @@
 {% extends "base.html" %}
 
 {% block conteudo %}
-    <style>
-        .flag-ball {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border: 3px solid #fff;
-            transition: all 0.3s ease;
-        }
-        .flag-ball:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2) !important;
-            border-color: #0d6efd;
-        }
-        .lang-link {
-            display: inline-block;
-            text-decoration: none;
-        }
-        .taxa-card {
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-        .taxa-card:hover {
-            border-color: #0d6efd;
-            background-color: #f8f9ff;
-        }
-        .taxa-card.active {
-            border-color: #198754;
-            background-color: #e8f5e9;
-        }
-    </style>
 
     <div class="mt-4">
         <h2>{{ _('home') }} - Sistema de Comissões</h2>
@@ -44,7 +13,7 @@
                 <div class="d-flex justify-content-center gap-3 flex-wrap">
                     {% for valor in ['3', '5', '6', '10'] %}
                     <a href="{{ url_for('set_config', tipo='taxa', valor=valor) }}" class="text-decoration-none">
-                        <div class="card taxa-card p-3 text-center shadow-sm {{ 'active' if session.get('taxa', '10') == valor else '' }}" style="width: 100px;">
+                        <div class="card taxa-card p-3 text-center shadow-sm {{ 'active' if session.get('taxa', '10') == valor else '' }}">
                             <h4 class="fw-bold mb-0 {{ 'text-success' if session.get('taxa', '10') == valor else 'text-primary' }}">{{ valor }}%</h4>
                         </div>
                     </a>

@@ -165,6 +165,74 @@ body {
     display: none;
 }
 
+/* --- Styles extracted from HTML templates --- */
+
+.texto-versao {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.card-upload,
+.card-contato,
+.alert-contato {
+    max-width: 600px;
+}
+
+.flag-ball {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    transition: all 0.3s ease;
+}
+
+.flag-ball:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2) !important;
+    border-color: #0d6efd;
+}
+
+.lang-link {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.taxa-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    width: 100px;
+}
+
+.taxa-card:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9ff;
+}
+
+.taxa-card.active {
+    border-color: #198754;
+    background-color: #e8f5e9;
+}
+
+/* Landing page specific styles (index.html root) */
+.hero-landing {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+    color: white;
+    padding: 60px 0;
+}
+
+.code-block {
+    background: #212529;
+    color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    font-family: monospace;
+}
+
+.badge-security {
+    background-color: #198754;
+}
+
 #content {
     width: 100%;
     min-height: 100vh;

@@ -8,7 +8,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert" style="max-width: 600px;">
+          <div class="alert alert-{{ category }} alert-contato alert-dismissible fade show" role="alert">
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
           </div>
@@ -16,7 +16,7 @@
       {% endif %}
     {% endwith %}
 
-    <div class="card shadow-sm mt-4 border-0" style="max-width: 600px;">
+    <div class="card shadow-sm mt-4 card-contato border-0">
         <div class="card-body p-4">
             <form action="{{ url_for('enviar_contato') }}" method="POST">
                 <div class="mb-3">
