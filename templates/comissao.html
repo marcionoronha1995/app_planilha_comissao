@@ -23,7 +23,8 @@
                 <div class="col-md-3">
                     <label for="taxa_conversao" class="form-label small text-muted">{{ _('cambio_atual') }}</label>
                     <input type="text" id="taxa_conversao" class="form-control" 
-                           value="{{ 1.0 | moeda('BRL') if session.get('moeda') == 'BRL' else 1.0 | moeda }}" readonly>
+                           value="{% if session.get('moeda') == 'BRL' %}R$ 1,00{% else %}R$ {{ get_taxa_venda(session.get('moeda')) | replace('.', ',') if get_taxa_venda(session.get('moeda')) else '---' }}{% endif %}" 
+                           readonly>
                 </div>
             </div>
         </div>

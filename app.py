@@ -142,6 +142,11 @@ def inject_translate():
         return TRADUCOES.get(idioma, TRADUCOES['pt']).get(chave, chave)
     return dict(_=_)
 
+@app.context_processor
+def inject_functions():
+    """Injeta funções utilitárias nos templates"""
+    return dict(get_taxa_venda=buscar_cotacao)
+
 @app.template_filter('moeda')
 def formato_moeda_br(valor, moeda_alvo=None):
     """Filtro para formatar valores convertidos e com símbolos"""
@@ -153,13 +158,18 @@ def formato_moeda_br(valor, moeda_alvo=None):
     if moeda_alvo != 'BRL':
         valor_venda_em_brl = buscar_cotacao(moeda_alvo)
         if valor_venda_em_brl:
-            taxa_conversao = 1.0 / valor_venda_em_brl
+            # Se a moeda alvo é BTC, precisamos de mais precisão e a taxa é muito pequena
+            taxa_conversao = 1.0 / float(valor_venda_em_brl)
 
-    simbolos = {'BRL': 'R$', 'USD': 'US$', 'EUR': '€'}
+    simbolos = {'BRL': 'R$', 'USD': 'US$', 'EUR': '€', 'BTC': '₿'}
     valor_convertido = float(valor) * taxa_conversao
     simbolo = simbolos.get(moeda_alvo, 'R$')
 
-    v_formatado = "{:,.2f}" if moeda_alvo != 'BTC' else "{:,.8f}"
+    if moeda_alvo == 'BTC':
+        v_formatado = "{:,.8f}"
+    else:
+        v_formatado = "{:,.2f}"
+        
     v_formatado = v_formatado.format(valor_convertido)
     v_br = v_formatado.replace(",", "v").replace(".", ",").replace("v", ".")
     return f"{simbolo} {v_br}"
@@ -342,7 +352,25 @@ def comissao():
         else:
             arquivo = request.files.get('arquivo_csv')
             dados_processados = ComissaoService.processar_arquivo_upload(arquivo, taxa=valor_taxa)
-            
+
+        if dados_processados and 'erro' not in dados_processados:
+            # Guardamos na sessão para não perder ao trocar moeda/idioma
+            # Convertemos Decimals para float/string para serialização JSON da sessão
+            session['dados_cache'] = {
+                'itens': dados_processados['itens'],
+                'total_vendas': float(dados_processados['total_vendas']),
+                'total_comissoes': float(dados_processados['total_comissoes']),
+                'total_linhas': dados_processados['total_linhas'],
+                'origem': dados_processados['origem']
+            }
+    else:
+        # Se for um GET (como o redirect da troca de moeda), tenta recuperar do cache
+        dados_cache = session.get('dados_cache')
+        if dados_cache:
+            # Se a taxa mudou, precisamos recalcular as comissões dos itens
+            # Para simplificar agora, apenas repassamos o cache
+            dados_processados = dados_cache
+
     return render_template('comissao.html', menu=MENU_SISTEMA, versao=VERSAO_APP, dados=dados_processados)
 
 @app.route('/get_cotacao/<moeda>')
