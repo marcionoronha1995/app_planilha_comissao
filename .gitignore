@@ -222,6 +222,10 @@ iniciar_projeto.py
 
 # --- Arquivo de contatos ---
 
+preparar_ambiente.py
+iniciar_sistema_total.py
+iniciar_projeto.py
+
 contatos_recebidos.csv
 # Chaves privadas (Segurança)
 ../app_planilha_key_priv
