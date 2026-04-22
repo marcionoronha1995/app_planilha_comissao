@@ -45,11 +45,11 @@
             <form action="{{ url_for('comissao') }}" method="POST" enctype="multipart/form-data">
                 <div class="mb-4">
                     <label for="arquivo_csv" class="form-label fw-bold text-secondary">{{ _('selecione_csv') }}</label>
-                    <input class="form-control form-control-lg" type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv" required>
+                    <input class="form-control form-control-lg" type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv" required disabled>
                     <div class="form-text mt-2">{{ _('apenas_csv') }}</div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" disabled>
                     {{ _('btn_carregar_arquivo') }}
                 </button>
             </form>
