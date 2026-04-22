@@ -286,7 +286,13 @@ class ComissaoService:
             return None
         
         # Transforma o stream do upload em um formato que o csv.DictReader entenda
-        stream = io.StringIO(arquivo.stream.read().decode("UTF8"), newline=None)
+        conteudo = arquivo.stream.read()
+        try:
+            decodificado = conteudo.decode("utf-8-sig")
+        except UnicodeDecodeError:
+            decodificado = conteudo.decode("cp1252")
+            
+        stream = io.StringIO(decodificado, newline=None)
         leitor = csv.DictReader(stream)
         
         dados = ComissaoService._executar_processamento(leitor, taxa)

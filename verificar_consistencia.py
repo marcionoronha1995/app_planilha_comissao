@@ -1,7 +1,13 @@
 import csv
 import os
+import sys
+import io
 
 def verificar_consistencia(caminho_arquivo):
+    # Força o terminal a aceitar UTF-8 para evitar erros de emoji no Windows
+    if sys.stdout.encoding != 'utf-8':
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
     print(f"🔍 Iniciando auditoria de dados: {caminho_arquivo}")
     erros = []
     
@@ -14,7 +20,7 @@ def verificar_consistencia(caminho_arquivo):
         print("❌ Erro: Arquivo de dados não encontrado.")
         return
 
-    with open(caminho_arquivo, mode='r', encoding='utf-8') as f:
+    with open(caminho_arquivo, mode='r', encoding='utf-8-sig', errors='replace') as f:
         leitor = csv.DictReader(f)
         for i, linha in enumerate(leitor, start=2):
             try:
