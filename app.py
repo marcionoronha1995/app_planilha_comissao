@@ -16,6 +16,7 @@ app.secret_key = 'chave_secreta_para_desenvolvimento_seguro'
 # ==========================================
 # 1. CONFIGURAÇÕES GERAIS
 # ==========================================
+API_COTACAO_URL = "https://economia.awesomeapi.com.br/last/{moeda}-BRL"
 VERSAO_APP = "1.2.0" 
 
 # Dicionário de traduções (Pode ser movido para um JSON externo no futuro)
@@ -41,7 +42,10 @@ TRADUCOES = {
         'cotacao_tempo_real': 'Cotação em Tempo Real (BRL)',
         'moeda_alvo': 'Moeda Alvo',
         'cambio_atual': 'Câmbio Atual (R$)',
+        'selecione_taxa': 'Selecione a taxa de comissão',
         'aguardando': 'Aguardando...',
+        'selecione_taxa_comissao': 'Selecione a taxa de comissão',
+        'taxa_comissao': 'Taxa de Comissão', # Novo
         'dados_carregados_via': 'Dados carregados via',
         'nenhum_dado': 'Nenhum dado processado ainda. Vá em "Ler Dados" para enviar um arquivo CSV.',
         'contato_titulo': 'Entre em Contato', 
@@ -78,7 +82,10 @@ TRADUCOES = {
         'cotacao_tempo_real': 'Real-Time Quote (BRL)',
         'moeda_alvo': 'Target Currency',
         'cambio_atual': 'Current Exchange (R$)',
+        'selecione_taxa': 'Select commission rate',
         'aguardando': 'Waiting...',
+        'selecione_taxa_comissao': 'Select commission rate',
+        'taxa_comissao': 'Commission Rate', # Novo
         'dados_carregados_via': 'Data loaded via',
         'nenhum_dado': 'No data processed yet. Go to "Read Data" to upload a CSV file.',
         'contato_titulo': 'Contact Us', 
@@ -116,7 +123,10 @@ TRADUCOES = {
         'cotacao_tempo_real': 'Cotización en Tiempo Real (BRL)',
         'moeda_alvo': 'Moneda de Destino',
         'cambio_atual': 'Cambio Actual (R$)',
+        'selecione_taxa': 'Seleccione la tasa de comisión',
         'aguardando': 'Esperando...',
+        'selecione_taxa_comissao': 'Seleccione la tasa de comisión',
+        'taxa_comissao': 'Tasa de Comisión', # Novo
         'dados_carregados_via': 'Datos cargados vía',
         'nenhum_dado': 'Aún no se han procesado datos. Vaya a "Ler Dados" para cargar un archivo CSV.',
         'contato_titulo': 'Contáctenos', 
@@ -153,16 +163,18 @@ def formato_moeda_br(valor, moeda_alvo=None):
     if valor is None: valor = 0
     if moeda_alvo is None: moeda_alvo = session.get('moeda', 'BRL')
     
-    # Obter taxa real via nossa função de busca
-    taxa_conversao = 1.0
+    # Garante o uso de Decimal para precisão nos cálculos de conversão
+    valor_decimal = Decimal(str(valor))
+    taxa_conversao = Decimal('1.0')
+
     if moeda_alvo != 'BRL':
         valor_venda_em_brl = buscar_cotacao(moeda_alvo)
         if valor_venda_em_brl:
-            # Se a moeda alvo é BTC, precisamos de mais precisão e a taxa é muito pequena
-            taxa_conversao = 1.0 / float(valor_venda_em_brl)
+            # Inverte a taxa (BRL -> Moeda Estrangeira)
+            taxa_conversao = Decimal('1.0') / valor_venda_em_brl
 
     simbolos = {'BRL': 'R$', 'USD': 'US$', 'EUR': '€', 'BTC': '₿'}
-    valor_convertido = float(valor) * taxa_conversao
+    valor_convertido = valor_decimal * taxa_conversao
     simbolo = simbolos.get(moeda_alvo, 'R$')
 
     if moeda_alvo == 'BTC':
@@ -201,6 +213,16 @@ MENU_SISTEMA = [
             {"nome": "Português", "url": "/appcomissao/set_config/idioma/pt", "icone": "🇧🇷"},
             {"nome": "English", "url": "/appcomissao/set_config/idioma/en", "icone": "🇺🇸"},
             {"nome": "Español", "url": "/appcomissao/set_config/idioma/es", "icone": "🇪🇸"}
+        ]
+    },
+    { # Novo item de menu para a taxa de comissão
+        "nome": "taxa_comissao", 
+        "icone": "📈", 
+        "sub_itens": [
+            {"nome": "3%", "url": "/appcomissao/set_config/taxa/3", "icone": "📊"},
+            {"nome": "5%", "url": "/appcomissao/set_config/taxa/5", "icone": "📊"},
+            {"nome": "6%", "url": "/appcomissao/set_config/taxa/6", "icone": "📊"},
+            {"nome": "10%", "url": "/appcomissao/set_config/taxa/10", "icone": "📊"},
         ]
     },
     {"nome": "contato", "url": "/appcomissao/contato", "icone": "✉️"},
@@ -311,14 +333,14 @@ def buscar_cotacao(moeda):
             return valor
 
     try:
-        url = f"https://economia.awesomeapi.com.br/last/{moeda}-BRL"
+        url = API_COTACAO_URL.format(moeda=moeda)
         response = requests.get(url, timeout=5)
         response.raise_for_status()
         
         dados = response.json()
         chave = f"{moeda}BRL"
         if chave in dados and 'bid' in dados[chave]:
-            valor = float(dados[chave]['bid'])
+            valor = Decimal(str(dados[chave]['bid']))
             if valor > 0:
                 CACHE_TAXAS[moeda] = (valor, agora)
                 return valor
@@ -383,7 +405,8 @@ def comissao():
 def get_cotacao(moeda):
     """Rota que retorna o JSON da cotação para o frontend."""
     valor = buscar_cotacao(moeda.upper())
-    return jsonify({"cotacao": valor})
+    # Converte para float apenas no momento de serializar o JSON para o frontend
+    return jsonify({"cotacao": float(valor) if valor else None})
 
 @app.route('/set_config/<tipo>/<valor>')
 def set_config(tipo, valor):

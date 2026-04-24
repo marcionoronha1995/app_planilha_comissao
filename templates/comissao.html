@@ -26,6 +26,17 @@
                            value="{% if session.get('moeda') == 'BRL' %}R$ 1,00{% else %}R$ {{ get_taxa_venda(session.get('moeda')) | replace('.', ',') if get_taxa_venda(session.get('moeda')) else '---' }}{% endif %}" 
                            readonly>
                 </div>
+                <!-- Novo seletor para a taxa de comissão -->
+                <div class="col-md-3">
+                    <label for="seletor_taxa_comissao" class="form-label small text-muted">{{ _('selecione_taxa') }}</label>
+                    <select class="form-select" id="seletor_taxa_comissao"
+                            onchange="window.location.href='/appcomissao/set_config/taxa/' + this.value" title="{{ _('taxa_comissao') }}">
+                        <option value="3" {% if session.get('taxa') == '3' %}selected{% endif %}>3%</option>
+                        <option value="5" {% if session.get('taxa') == '5' %}selected{% endif %}>5%</option>
+                        <option value="6" {% if session.get('taxa') == '6' %}selected{% endif %}>6%</option>
+                        <option value="10" {% if session.get('taxa') == '10' %}selected{% endif %}>10%</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
