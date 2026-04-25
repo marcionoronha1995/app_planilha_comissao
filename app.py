@@ -6,6 +6,8 @@ from decimal import Decimal, ROUND_HALF_UP
 from datetime import datetime
 import requests
 import time
+import tempfile
+import uuid
 
 # Cache global para evitar excesso de chamadas à API (expira em 5 minutos)
 CACHE_TAXAS = {}
@@ -186,48 +188,51 @@ def formato_moeda_br(valor, moeda_alvo=None):
     v_br = v_formatado.replace(",", "v").replace(".", ",").replace("v", ".")
     return f"{simbolo} {v_br}"
 
-MENU_SISTEMA = [
-    {"nome": "home", "url": "/appcomissao/", "icone": "🏠"},
-    {
-        "nome": "dados", 
-        "icone": "📂", 
-        "sub_itens": [
-            {"nome": "ler_dados", "url": "/appcomissao/ler_dados", "icone": "📥"},
-            {"nome": "processar", "url": "/appcomissao/comissao", "icone": "⚙️"}
-        ]
-    },
-    {"nome": "comissoes", "url": "/appcomissao/comissao", "icone": "💰"},
-    {
-        "nome": "moeda", 
-        "icone": "💱", 
-        "sub_itens": [
-            {"nome": "Real (BRL)", "url": "/appcomissao/set_config/moeda/BRL", "icone": "🇧🇷"},
-            {"nome": "Dólar (USD)", "url": "/appcomissao/set_config/moeda/USD", "icone": "🇺🇸"},
-            {"nome": "Euro (EUR)", "url": "/appcomissao/set_config/moeda/EUR", "icone": "🇪🇺"}
-        ]
-    },
-    {
-        "nome": "idioma", 
-        "icone": "🌐", 
-        "sub_itens": [
-            {"nome": "Português", "url": "/appcomissao/set_config/idioma/pt", "icone": "🇧🇷"},
-            {"nome": "English", "url": "/appcomissao/set_config/idioma/en", "icone": "🇺🇸"},
-            {"nome": "Español", "url": "/appcomissao/set_config/idioma/es", "icone": "🇪🇸"}
-        ]
-    },
-    { # Novo item de menu para a taxa de comissão
-        "nome": "taxa_comissao", 
-        "icone": "📈", 
-        "sub_itens": [
-            {"nome": "3%", "url": "/appcomissao/set_config/taxa/3", "icone": "📊"},
-            {"nome": "5%", "url": "/appcomissao/set_config/taxa/5", "icone": "📊"},
-            {"nome": "6%", "url": "/appcomissao/set_config/taxa/6", "icone": "📊"},
-            {"nome": "10%", "url": "/appcomissao/set_config/taxa/10", "icone": "📊"},
-        ]
-    },
-    {"nome": "contato", "url": "/appcomissao/contato", "icone": "✉️"},
-    {"nome": "relatorios", "url": "/appcomissao/relatorios", "icone": "📈"}
-]
+@app.context_processor
+def inject_menu():
+    """Injeta o menu dinamicamente usando url_for, resolvendo bugs de rotas em produção."""
+    return dict(menu=[
+        {"nome": "home", "url": url_for('home'), "icone": "🏠"},
+        {
+            "nome": "dados", 
+            "icone": "📂", 
+            "sub_itens": [
+                {"nome": "ler_dados", "url": url_for('ler_dados'), "icone": "📥"},
+                {"nome": "processar", "url": url_for('comissao'), "icone": "⚙️"}
+            ]
+        },
+        {"nome": "comissoes", "url": url_for('comissao'), "icone": "💰"},
+        {
+            "nome": "moeda", 
+            "icone": "💱", 
+            "sub_itens": [
+                {"nome": "Real (BRL)", "url": url_for('set_config', tipo='moeda', valor='BRL'), "icone": "🇧🇷"},
+                {"nome": "Dólar (USD)", "url": url_for('set_config', tipo='moeda', valor='USD'), "icone": "🇺🇸"},
+                {"nome": "Euro (EUR)", "url": url_for('set_config', tipo='moeda', valor='EUR'), "icone": "🇪🇺"}
+            ]
+        },
+        {
+            "nome": "idioma", 
+            "icone": "🌐", 
+            "sub_itens": [
+                {"nome": "Português", "url": url_for('set_config', tipo='idioma', valor='pt'), "icone": "🇧🇷"},
+                {"nome": "English", "url": url_for('set_config', tipo='idioma', valor='en'), "icone": "🇺🇸"},
+                {"nome": "Español", "url": url_for('set_config', tipo='idioma', valor='es'), "icone": "🇪🇸"}
+            ]
+        },
+        {
+            "nome": "taxa_comissao", 
+            "icone": "📈", 
+            "sub_itens": [
+                {"nome": "3%", "url": url_for('set_config', tipo='taxa', valor='3'), "icone": "📊"},
+                {"nome": "5%", "url": url_for('set_config', tipo='taxa', valor='5'), "icone": "📊"},
+                {"nome": "6%", "url": url_for('set_config', tipo='taxa', valor='6'), "icone": "📊"},
+                {"nome": "10%", "url": url_for('set_config', tipo='taxa', valor='10'), "icone": "📊"},
+            ]
+        },
+        {"nome": "contato", "url": url_for('contato'), "icone": "✉️"},
+        {"nome": "relatorios", "url": url_for('relatorios'), "icone": "📈"}
+    ])
 
 # ==========================================
 # 2. LÓGICA DE NEGÓCIO (OBJETO DE SERVIÇO)
@@ -302,23 +307,22 @@ class ComissaoService:
             return dados
 
     @staticmethod
-    def processar_arquivo_upload(arquivo, taxa):
+    def processar_arquivo_upload(conteudo_bytes, filename, taxa):
         """Processa o arquivo enviado via formulário."""
-        if not arquivo or arquivo.filename == '':
+        if not conteudo_bytes:
             return None
         
-        # Transforma o stream do upload em um formato que o csv.DictReader entenda
-        conteudo = arquivo.stream.read()
+        # Decodifica os bytes para string de texto
         try:
-            decodificado = conteudo.decode("utf-8-sig")
+            decodificado = conteudo_bytes.decode("utf-8-sig")
         except UnicodeDecodeError:
-            decodificado = conteudo.decode("cp1252")
+            decodificado = conteudo_bytes.decode("cp1252")
             
         stream = io.StringIO(decodificado, newline=None)
         leitor = csv.DictReader(stream)
         
         dados = ComissaoService._executar_processamento(leitor, taxa)
-        dados['origem'] = f"Upload: {arquivo.filename}"
+        dados['origem'] = f"Upload: {filename}"
         return dados
 
 def buscar_cotacao(moeda):
@@ -355,11 +359,11 @@ def buscar_cotacao(moeda):
 
 @app.route('/')
 def home():
-    return render_template('index.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
+    return render_template('index.html', versao=VERSAO_APP)
 
 @app.route('/ler_dados')
 def ler_dados():
-    return render_template('ler_dados.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
+    return render_template('ler_dados.html', versao=VERSAO_APP)
 
 @app.route('/comissao', methods=['GET', 'POST'])
 def comissao():
@@ -377,25 +381,42 @@ def comissao():
         
         if modo_apresentacao:
             dados_processados = ComissaoService.carregar_dados_padrao(taxa=valor_taxa)
+            if dados_processados and 'erro' not in dados_processados:
+                session['fonte_dados'] = 'padrao'
         else:
             arquivo = request.files.get('arquivo_csv')
-            dados_processados = ComissaoService.processar_arquivo_upload(arquivo, taxa=valor_taxa)
+            if arquivo and arquivo.filename != '':
+                conteudo_bytes = arquivo.read()
+                
+                # Salva arquivo temporário para persistir dados ao trocar moeda/taxa
+                temp_dir = tempfile.gettempdir()
+                temp_path = os.path.join(temp_dir, f"upload_{uuid.uuid4().hex}.csv")
+                with open(temp_path, 'wb') as f:
+                    f.write(conteudo_bytes)
+                    
+                session['fonte_dados'] = 'upload'
+                session['caminho_arquivo_temp'] = temp_path
+                session['nome_arquivo_original'] = arquivo.filename
+                
+                dados_processados = ComissaoService.processar_arquivo_upload(conteudo_bytes, arquivo.filename, taxa=valor_taxa)
 
-        if dados_processados and 'erro' not in dados_processados:
-            if modo_apresentacao:
-                # Guarda APENAS um ponteiro leve na sessão, prevenindo o limite de 4KB do Cookie
-                session['fonte_dados'] = 'padrao'
-            else:
-                # Para uploads reais, limpa o ponteiro (numa arquitetura avançada salvaria num /tmp)
-                session.pop('fonte_dados', None)
-        elif dados_processados and 'erro' in dados_processados:
+        if dados_processados and 'erro' in dados_processados:
             flash(dados_processados['erro'], "danger")
     else:
-        # Se for GET (troca de moeda), processa os dados on-the-fly novamente usando CPU (mais seguro e escalável)
         if session.get('fonte_dados') == 'padrao':
             dados_processados = ComissaoService.carregar_dados_padrao(taxa=valor_taxa)
+        elif session.get('fonte_dados') == 'upload' and session.get('caminho_arquivo_temp'):
+            caminho_temp = session.get('caminho_arquivo_temp')
+            if os.path.exists(caminho_temp):
+                with open(caminho_temp, 'rb') as f:
+                    conteudo_bytes = f.read()
+                filename = session.get('nome_arquivo_original', 'upload.csv')
+                dados_processados = ComissaoService.processar_arquivo_upload(conteudo_bytes, filename, taxa=valor_taxa)
+            else:
+                flash("Sua sessão de arquivo expirou. Por favor, faça o upload novamente.", "warning")
+                session.pop('fonte_dados', None)
 
-    return render_template('comissao.html', menu=MENU_SISTEMA, versao=VERSAO_APP, dados=dados_processados)
+    return render_template('comissao.html', versao=VERSAO_APP, dados=dados_processados)
 
 @app.route('/get_cotacao/<moeda>')
 def get_cotacao(moeda):
@@ -413,7 +434,7 @@ def set_config(tipo, valor):
 
 @app.route('/contato')
 def contato():
-    return render_template('contato.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
+    return render_template('contato.html', versao=VERSAO_APP)
 
 @app.route('/enviar_contato', methods=['POST'])
 def enviar_contato():
@@ -454,7 +475,7 @@ def enviar_contato():
 
 @app.route('/relatorios')
 def relatorios():
-    return render_template('relatorios.html', menu=MENU_SISTEMA, versao=VERSAO_APP)
+    return render_template('relatorios.html', versao=VERSAO_APP)
 
 # ==========================================
 # 3. INICIAR O SERVIDOR

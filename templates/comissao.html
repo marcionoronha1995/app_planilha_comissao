@@ -13,7 +13,7 @@
                 <div class="col-md-3">
                     <label for="seletor_moeda" class="form-label small text-muted">{{ _('moeda_alvo') }}</label>
                     <select class="form-select" id="seletor_moeda" 
-                            onchange="window.location.href='/appcomissao/set_config/moeda/' + this.value" title="{{ _('moeda') }}">
+                        onchange="window.location.href='{{ url_for('set_config', tipo='moeda', valor='') }}' + this.value" title="{{ _('moeda') }}">
                         <option value="BRL" {% if session.get('moeda') == 'BRL' %}selected{% endif %}>Real (BRL)</option>
                         <option value="USD" {% if session.get('moeda') == 'USD' %}selected{% endif %}>Dólar (USD)</option>
                         <option value="EUR" {% if session.get('moeda') == 'EUR' %}selected{% endif %}>Euro (EUR)</option>
@@ -30,7 +30,7 @@
                 <div class="col-md-3">
                     <label for="seletor_taxa_comissao" class="form-label small text-muted">{{ _('selecione_taxa') }}</label>
                     <select class="form-select" id="seletor_taxa_comissao"
-                            onchange="window.location.href='/appcomissao/set_config/taxa/' + this.value" title="{{ _('taxa_comissao') }}">
+                        onchange="window.location.href='{{ url_for('set_config', tipo='taxa', valor='') }}' + this.value" title="{{ _('taxa_comissao') }}">
                         <option value="3" {% if session.get('taxa') == '3' %}selected{% endif %}>3%</option>
                         <option value="5" {% if session.get('taxa') == '5' %}selected{% endif %}>5%</option>
                         <option value="6" {% if session.get('taxa') == '6' %}selected{% endif %}>6%</option>
