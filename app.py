@@ -382,22 +382,18 @@ def comissao():
             dados_processados = ComissaoService.processar_arquivo_upload(arquivo, taxa=valor_taxa)
 
         if dados_processados and 'erro' not in dados_processados:
-            # Guardamos na sessão para não perder ao trocar moeda/idioma
-            # Convertemos Decimals para float/string para serialização JSON da sessão
-            session['dados_cache'] = {
-                'itens': dados_processados['itens'],
-                'total_vendas': float(dados_processados['total_vendas']),
-                'total_comissoes': float(dados_processados['total_comissoes']),
-                'total_linhas': dados_processados['total_linhas'],
-                'origem': dados_processados['origem']
-            }
+            if modo_apresentacao:
+                # Guarda APENAS um ponteiro leve na sessão, prevenindo o limite de 4KB do Cookie
+                session['fonte_dados'] = 'padrao'
+            else:
+                # Para uploads reais, limpa o ponteiro (numa arquitetura avançada salvaria num /tmp)
+                session.pop('fonte_dados', None)
+        elif dados_processados and 'erro' in dados_processados:
+            flash(dados_processados['erro'], "danger")
     else:
-        # Se for um GET (como o redirect da troca de moeda), tenta recuperar do cache
-        dados_cache = session.get('dados_cache')
-        if dados_cache:
-            # Se a taxa mudou, precisamos recalcular as comissões dos itens
-            # Para simplificar agora, apenas repassamos o cache
-            dados_processados = dados_cache
+        # Se for GET (troca de moeda), processa os dados on-the-fly novamente usando CPU (mais seguro e escalável)
+        if session.get('fonte_dados') == 'padrao':
+            dados_processados = ComissaoService.carregar_dados_padrao(taxa=valor_taxa)
 
     return render_template('comissao.html', menu=MENU_SISTEMA, versao=VERSAO_APP, dados=dados_processados)
 
