@@ -11,6 +11,7 @@ import uuid
 
 # Cache global para evitar excesso de chamadas à API (expira em 5 minutos)
 CACHE_TAXAS = {}
+HTTP_SESSION = requests.Session() # Cria um pool de conexões TCP para maior velocidade
 
 app = Flask(__name__)
 app.secret_key = 'chave_secreta_para_desenvolvimento_seguro'
@@ -338,7 +339,7 @@ def buscar_cotacao(moeda):
 
     try:
         url = API_COTACAO_URL.format(moeda=moeda)
-        response = requests.get(url, timeout=5)
+        response = HTTP_SESSION.get(url, timeout=3) # Timeout reduzido e uso da sessão
         response.raise_for_status()
         
         dados = response.json()

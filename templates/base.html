@@ -103,17 +103,37 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Intercepta envios de formulários (ex: upload de CSV, botão de confirmar dados padrão)
+            let tempoEspera;
+
+            // 1. Envios de formulários continuam imediatos (pois exigem upload de dados)
             document.querySelectorAll('form').forEach(form => {
-                form.addEventListener('submit', mostrarLoading);
+                form.addEventListener('submit', () => {
+                    mostrarLoading();
+                });
             });
 
-            // 2. Intercepta os selects que possuem redirecionamento (moeda, taxa)
+            // 2. Selects de moeda/taxa continuam imediatos (pois são recálculos diretos)
             document.querySelectorAll('select[onchange*="window.location.href"]').forEach(select => {
-                select.addEventListener('change', mostrarLoading);
+                select.addEventListener('change', () => {
+                    mostrarLoading();
+                });
             });
 
-            // Você pode adicionar onclick="mostrarLoading()" em qualquer outro link ou botão futuramente
+            // 3. NOVO: Monitora links (Menus). Se não carregar em 2 segundos, exibe a tela.
+            document.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Ignora links que abrem modais, submenus do Bootstrap ou abas novas
+                    const href = this.getAttribute('href');
+                    if (!href || href.startsWith('#') || this.target === '_blank' || this.hasAttribute('data-bs-toggle')) {
+                        return;
+                    }
+                    
+                    clearTimeout(tempoEspera); // Reseta o relógio
+                    tempoEspera = setTimeout(() => {
+                        mostrarLoading();
+                    }, 2000); // 2000 milissegundos = 2 segundos
+                });
+            });
         });
     </script>
 </body>
