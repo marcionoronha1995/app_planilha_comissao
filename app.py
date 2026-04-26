@@ -465,10 +465,25 @@ def get_cotacao(moeda):
 
 @app.route('/set_config/<tipo>/<valor>')
 def set_config(tipo, valor):
-    """Rota genérica para configurar moeda ou idioma"""
-    if tipo in ['moeda', 'idioma', 'taxa']:
+    """Rota genérica e segura para configurar moeda, idioma ou taxa"""
+    
+    # 1. Validação de Entradas (Evita Session Poisoning)
+    valores_permitidos = {
+        'moeda': ['BRL', 'USD', 'EUR', 'BTC'],
+        'idioma': ['pt', 'en', 'es'],
+        'taxa': ['3', '5', '6', '10']
+    }
+    
+    if tipo in valores_permitidos and valor in valores_permitidos[tipo]:
         session[tipo] = valor
-    return redirect(request.referrer or url_for('home'))
+        
+    # 2. Segurança contra Open Redirect (Garante que o redirecionamento é interno)
+    referencia = request.referrer
+    if referencia and referencia.startswith(request.host_url):
+        return redirect(referencia)
+        
+    # Fallback seguro caso o referer venha de fora (ou seja nulo)
+    return redirect(url_for('home'))
 
 @app.route('/contato')
 def contato():
