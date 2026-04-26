@@ -3,7 +3,7 @@ import csv
 import os
 import io
 from decimal import Decimal, ROUND_HALF_UP
-from datetime import datetime
+from datetime import datetime, timedelta
 import requests
 import time
 import tempfile
@@ -19,7 +19,8 @@ app.secret_key = 'chave_secreta_para_desenvolvimento_seguro'
 # ==========================================
 # 1. CONFIGURAÇÕES GERAIS
 # ==========================================
-API_COTACAO_URL = "https://economia.awesomeapi.com.br/last/{moeda}-BRL"
+# API do Banco Central do Brasil (BCB)
+API_COTACAO_URL = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@moeda='{moeda}'&@dataInicial='{data_inicial}'&@dataFinalCotacao='{data_final}'&$top=1&$orderby=dataHoraCotacao%20desc&$format=json"
 VERSAO_APP = "1.2.0" 
 
 # Dicionário de traduções (Pode ser movido para um JSON externo no futuro)
@@ -327,37 +328,62 @@ class ComissaoService:
         return dados
 
 def buscar_cotacao(moeda):
-    """Faz a busca da cotação em tempo real via API externa."""
+    """Faz a busca da cotação via API do Banco Central do Brasil (BCB)."""
     moeda = moeda.upper()
-    agora = time.time()
+    agora_ts = time.time()
     
     # Verifica se temos a cotação no cache e se tem menos de 5 minutos
     if moeda in CACHE_TAXAS:
         valor, timestamp = CACHE_TAXAS[moeda]
-        if agora - timestamp < 300:
+        if agora_ts - timestamp < 300:
             return valor
+            
+    # Fallback para BTC: O BCB não fornece cotação de criptomoedas
+    if moeda == 'BTC':
+        try:
+            url_btc = "https://economia.awesomeapi.com.br/last/BTC-BRL"
+            response = HTTP_SESSION.get(url_btc, timeout=10)
+            response.raise_for_status()
+            dados = response.json()
+            if 'BTCBRL' in dados and 'bid' in dados['BTCBRL']:
+                valor = Decimal(str(dados['BTCBRL']['bid']))
+                CACHE_TAXAS[moeda] = (valor, agora_ts)
+                return valor
+        except Exception as e:
+            print(f"Erro ao buscar cotação BTC: {e}")
+        return None
 
     try:
-        url = API_COTACAO_URL.format(moeda=moeda)
-        response = HTTP_SESSION.get(url, timeout=10) # Aumentado para 10s para acomodar o proxy do PythonAnywhere
+        # O BCB requer formato de data MM-DD-YYYY. 
+        # Pegamos os últimos 7 dias para sempre encontrar o último dia útil
+        hoje = datetime.now()
+        data_final = hoje.strftime('%m-%d-%Y')
+        data_inicial = (hoje - timedelta(days=7)).strftime('%m-%d-%Y')
+        
+        url = API_COTACAO_URL.format(moeda=moeda, data_inicial=data_inicial, data_final=data_final)
+        response = HTTP_SESSION.get(url, timeout=10)
         response.raise_for_status()
         
         dados = response.json()
-        chave = f"{moeda}BRL"
-        if chave in dados and 'bid' in dados[chave]:
-            valor = Decimal(str(dados[chave]['bid']))
+        if 'value' in dados and len(dados['value']) > 0:
+            # O BCB retorna 'cotacaoCompra' e 'cotacaoVenda'
+            valor = Decimal(str(dados['value'][0]['cotacaoVenda']))
             if valor > 0:
-                CACHE_TAXAS[moeda] = (valor, agora)
+                CACHE_TAXAS[moeda] = (valor, agora_ts)
                 return valor
         return None
     except Exception as e:
-        print(f"Erro ao buscar cotação para {moeda}: {e}")
+        print(f"Erro ao buscar cotação no BCB para {moeda}: {e}")
         return None
 
 @app.route('/teste-api')
 def teste_api():
-    """Rota de diagnóstico para testar a conectividade da API no servidor de produção."""
-    url = API_COTACAO_URL.format(moeda='USD')
+    """Rota de diagnóstico para testar a conectividade da API do BCB no servidor de produção."""
+    hoje = datetime.now()
+    data_final = hoje.strftime('%m-%d-%Y')
+    data_inicial = (hoje - timedelta(days=7)).strftime('%m-%d-%Y')
+    
+    url = API_COTACAO_URL.format(moeda='USD', data_inicial=data_inicial, data_final=data_final)
     try:
         # Usando requests diretamente sem a sessão para um teste limpo
         resp = requests.get(url, timeout=10)
