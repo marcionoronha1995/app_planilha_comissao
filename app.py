@@ -339,7 +339,7 @@ def buscar_cotacao(moeda):
 
     try:
         url = API_COTACAO_URL.format(moeda=moeda)
-        response = HTTP_SESSION.get(url, timeout=3) # Timeout reduzido e uso da sessão
+        response = HTTP_SESSION.get(url, timeout=10) # Aumentado para 10s para acomodar o proxy do PythonAnywhere
         response.raise_for_status()
         
         dados = response.json()
@@ -353,6 +353,17 @@ def buscar_cotacao(moeda):
     except Exception as e:
         print(f"Erro ao buscar cotação para {moeda}: {e}")
         return None
+
+@app.route('/teste-api')
+def teste_api():
+    """Rota de diagnóstico para testar a conectividade da API no servidor de produção."""
+    url = API_COTACAO_URL.format(moeda='USD')
+    try:
+        # Usando requests diretamente sem a sessão para um teste limpo
+        resp = requests.get(url, timeout=10)
+        return jsonify({"status": "sucesso", "http_code": resp.status_code, "dados": resp.json()})
+    except Exception as e:
+        return jsonify({"status": "erro_critico", "mensagem": str(e), "tipo_erro": type(e).__name__})
 
 # ==========================================
 # 2. ROTAS
