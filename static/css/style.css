@@ -251,5 +251,6 @@ body {
     z-index: 10000; /* Fica acima de tudo no site */
     justify-content: center;
     align-items: center;
+    -webkit-backdrop-filter: blur(4px); /* Suporte para Safari (iOS/macOS) e navegadores antigos */
     backdrop-filter: blur(4px); /* Efeito de desfoque elegante */
 }
