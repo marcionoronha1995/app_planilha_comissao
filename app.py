@@ -8,6 +8,7 @@ import requests
 import time
 import tempfile
 import uuid
+import calendar
 
 # Cache global para evitar excesso de chamadas à API (expira em 5 minutos)
 CACHE_TAXAS = {}
@@ -63,7 +64,10 @@ TRADUCOES = {
         'msg_sucesso': 'Obrigado, {nome}! Recebemos sua mensagem e entraremos em contato em breve.',
         'msg_erro_validacao': 'Dados inválidos ou e-mail malformatado.',
         'msg_erro_interno': 'Ocorreu um erro interno ao enviar.',
-        'relatorios_titulo': 'Programa de Relatórios', 'relatorios_desc': 'Bem-vindo à tela de relatórios. Aqui vamos colocar os gráficos no futuro.'
+        'relatorios_titulo': 'Programa de Relatórios', 'relatorios_desc': 'Visão geral com a soma de todos os valores numéricos.',
+        'data_inicio': 'Data Inicial', 'data_fim': 'Data Final', 'mes': 'Mês', 'ano': 'Ano', 'filtrar': 'Filtrar',
+        'mes_pedido': 'Mês do Pedido', 'ano_pedido': 'Ano do Pedido',
+        'totais_globais': 'Totais Globais', 'qtd_pdv': 'Quantidade PDV', 'vl_setup': 'Valor Setup', 'vl_totem': 'Valor Totem', 'vl_licenca': 'Valor Licença', 'todos': 'Todos'
     },
     'en': {
         'home': 'Home', 'dados': 'Data', 'ler_dados': 'Read Data', 
@@ -103,7 +107,10 @@ TRADUCOES = {
         'msg_sucesso': 'Thank you, {nome}! We have received your message and will get back to you soon.',
         'msg_erro_validacao': 'Invalid data or malformed email.',
         'msg_erro_interno': 'An internal error occurred while sending.',
-        'relatorios_titulo': 'Reports Program', 'relatorios_desc': 'Welcome to the reports screen. This is where we will put the charts in the future.'
+        'relatorios_titulo': 'Reports Program', 'relatorios_desc': 'Overview with the sum of all numeric values.',
+        'data_inicio': 'Start Date', 'data_fim': 'End Date', 'mes': 'Month', 'ano': 'Year', 'filtrar': 'Filter',
+        'mes_pedido': 'Order Month', 'ano_pedido': 'Order Year',
+        'totais_globais': 'Global Totals', 'qtd_pdv': 'POS Quantity', 'vl_setup': 'Setup Value', 'vl_totem': 'Totem Value', 'vl_licenca': 'License Value', 'todos': 'All'
     }
     ,
     'es': {
@@ -144,7 +151,10 @@ TRADUCOES = {
         'msg_sucesso': '¡Gracias, {nome}! Hemos recibido su mensaje y nos pondremos en contacto en breve.',
         'msg_erro_validacao': 'Datos inválidos o correo malformado.',
         'msg_erro_interno': 'Ocurrió un error interno al enviar.',
-        'relatorios_titulo': 'Programa de Informes', 'relatorios_desc': 'Bienvenido a la pantalla de informes. Aquí es donde pondremos los gráficos en el futuro.'
+        'relatorios_titulo': 'Programa de Informes', 'relatorios_desc': 'Visión general con la suma de todos los valores numéricos.',
+        'data_inicio': 'Fecha Inicial', 'data_fim': 'Fecha Final', 'mes': 'Mes', 'ano': 'Año', 'filtrar': 'Filtrar',
+        'mes_pedido': 'Mes del Pedido', 'ano_pedido': 'Año del Pedido',
+        'totais_globais': 'Totales Globales', 'qtd_pdv': 'Cantidad TPV', 'vl_setup': 'Valor Setup', 'vl_totem': 'Valor Totem', 'vl_licenca': 'Valor Licencia', 'todos': 'Todos'
     }
 }
 
@@ -526,9 +536,92 @@ def enviar_contato():
         flash(trad['msg_erro_interno'], "danger")
         return redirect(url_for('contato'))
 
-@app.route('/relatorios')
+@app.route('/relatorios', methods=['GET'])
 def relatorios():
-    return render_template('relatorios.html', versao=VERSAO_APP)
+    # Captura os parâmetros de filtro da URL
+    mes_str = request.args.get('mes')
+    ano_str = request.args.get('ano')
+
+    # Define o arquivo de origem de forma inteligente (Upload da Sessão ou Padrão)
+    caminho_arquivo = os.path.join(os.path.dirname(__file__), "dados_planilha.csv")
+    nome_arquivo_exibicao = "dados_planilha.csv (Padrão)"
+    
+    if session.get('fonte_dados') == 'upload' and session.get('caminho_arquivo_temp'):
+        if os.path.exists(session.get('caminho_arquivo_temp')):
+            caminho_arquivo = session.get('caminho_arquivo_temp')
+            nome_arquivo_exibicao = session.get('nome_arquivo_original', 'Arquivo Temporário (Upload)')
+
+    # 1. Leitura inicial para descobrir meses e anos existentes (Filtro de Existência)
+    meses_existentes = set()
+    anos_existentes = set()
+    registros = []
+
+    # Carrega todos os registros de uma vez validando a existência
+    if os.path.exists(caminho_arquivo):
+        with open(caminho_arquivo, mode='r', encoding='utf-8-sig', errors='replace') as f:
+            leitor = csv.DictReader(f)
+            for linha in leitor:
+                dt_str = linha.get('DATA_PEDIDO', '')
+                dt_obj = None
+                if dt_str:
+                    try:
+                        dt_obj = datetime.strptime(dt_str, '%Y-%m-%d')
+                        meses_existentes.add(dt_obj.month)
+                        anos_existentes.add(dt_obj.year)
+                    except ValueError:
+                        pass
+                registros.append({'linha': linha, 'dt_obj': dt_obj})
+
+    meses_existentes = sorted(list(meses_existentes))
+    anos_existentes = sorted(list(anos_existentes))
+
+    # 2. Lógica de Dependência e Validação de Inputs
+    ano_filtro = None
+    mes_filtro = None
+
+    if ano_str and ano_str.isdigit():
+        ano_filtro = int(ano_str)
+        if ano_filtro not in anos_existentes:
+            flash(f"O ano {ano_filtro} não possui registros. Ajustando para o filtro geral.", "warning")
+            ano_filtro = None
+
+    if mes_str and mes_str.isdigit():
+        mes_filtro = int(mes_str)
+        if mes_filtro not in meses_existentes:
+            flash(f"O mês {mes_filtro} não possui registros. Ajustando para o filtro geral.", "warning")
+            mes_filtro = None
+
+    # Estrutura para os Totais Globais
+    totais = { 'qtd_pdv': 0, 'vl_setup': Decimal('0.00'), 'vl_totem': Decimal('0.00'), 'vl_licenca': Decimal('0.00') }
+
+    # 3. Filtragem e soma (Apenas utilizando a matriz que já processamos antes)
+    for item in registros:
+        linha = item['linha']
+        dt_obj = item['dt_obj']
+        incluir = True
+        
+        if dt_obj:
+            dt_date = dt_obj.date()
+            if mes_filtro and dt_date.month != mes_filtro: incluir = False
+            if ano_filtro and dt_date.year != ano_filtro: incluir = False
+        else:
+            if mes_filtro or ano_filtro:
+                incluir = False
+
+        if incluir:
+            try: totais['qtd_pdv'] += int(linha.get('QDT_PDV', 0) or 0)
+            except ValueError: pass
+            
+            totais['vl_setup'] += ComissaoService.para_decimal(linha.get('VL_SETUP', 0))
+            totais['vl_totem'] += ComissaoService.para_decimal(linha.get('VL_TOTEM', 0))
+            totais['vl_licenca'] += ComissaoService.para_decimal(linha.get('VL_LICENÇA', 0))
+
+    return render_template('relatorios.html', versao=VERSAO_APP, totais=totais, 
+                           mes=str(mes_filtro) if mes_filtro else '', 
+                           ano=str(ano_filtro) if ano_filtro else '',
+                           meses_disponiveis=meses_existentes,
+                           anos_disponiveis=anos_existentes,
+                           nome_arquivo=nome_arquivo_exibicao)
 
 # ==========================================
 # 3. INICIAR O SERVIDOR
